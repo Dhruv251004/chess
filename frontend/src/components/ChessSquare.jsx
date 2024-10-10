@@ -72,7 +72,6 @@ const ChessSquare = ({ color, square }) => {
   }, [square]);
 
   const squareColor=color
-  console.log(squareColor)
   return (
     <div
       style={{ backgroundImage: `url(${piece})`, backgroundSize: 'cover' }}

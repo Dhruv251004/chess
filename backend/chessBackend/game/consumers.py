@@ -74,7 +74,6 @@ class GameConsumer(AsyncWebsocketConsumer):
             GameConsumer.waiting_user = None
         GameConsumer.waiting_room = None
 
-
         if self.user in GameConsumer.players:
             del GameConsumer.players[self.user]
             del GameConsumer.piece_assignment[self.user]
@@ -94,24 +93,24 @@ class GameConsumer(AsyncWebsocketConsumer):
         move = Move(self.user, prev_position, curr_position)
 
         # Make the move
-        if game.make_move(move):
-            # Send message to room group
-            await self.channel_layer.group_send(
-                self.game_room_name, {"type": "game.room", "event": game_event}
+        game.make_move(move)
+
+        response = move.to_json()
+
+        if 'message' in response and response["message"] == 'INVALID':
+            # send message to particula individual
+            await self.channel_layer.send(
+                self.channel_name, {"type": "game.room", "event": response}
             )
         else:
-            await self.channel_layer.send(
-                self.channel_name, {
-                    "type": "game.room",
-                    "event": {
-                        "message": "INVALID MOVE"
-                    }
-                }
+            # Send message to room group
+            await self.channel_layer.group_send(
+                self.game_room_name, {"type": "game.room", "event": response}
             )
         game.print_board()
 
     async def game_room(self, event):
         game_event = event["event"]
-
+        print(game_event)
         # Send message to WebSocket
         await self.send(text_data=json.dumps({"event": game_event}))

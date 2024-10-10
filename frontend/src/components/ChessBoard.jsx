@@ -23,10 +23,11 @@ const ChessBoard = () => {
         newSocket.onmessage=(e)=>{
             const data=JSON.parse((e.data))
             console.log(data)
-            if(data.event.message=='INVALID MOVE'){
+            if(data.event.message=='INVALID'){
                 return;
             }
             if(data.event.message!='START'){
+
                 //Do something
                 let prev=data.event.from;
                 let curr=data.event.to;
@@ -41,6 +42,23 @@ const ChessBoard = () => {
 
                     return board; // Return the updated board
                 });
+                
+                if (data.event.castle){
+                    let prev=data.event.castle.from;
+                    let curr=data.event.castle.to;
+                    setChessBoard((prevBoard) => {
+                        const board = JSON.parse(JSON.stringify(prevBoard));
+                        board[curr].piece = board[prev].piece;
+                        board[curr].pieceColor = board[prev].pieceColor;
+
+                        // Clear the previous square
+                        board[prev].piece = '';
+                        board[prev].pieceColor = '';
+
+                        return board; // Return the updated board
+                    });
+                }
+
                 // let board=JSON.parse(JSON.stringify(chessBoard));
                 // board[curr].piece=board[prev].piece
                 // board[curr].pieceColor=board[prev].pieceColor;

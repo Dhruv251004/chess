@@ -7,6 +7,9 @@ class Move():
         self.user = user
         self.prev = prev
         self.curr = curr
+        self.is_castle = False
+        self.is_valid = True
+        self.castle = {}
 
     def get_prev_coordinates(self):
         return [int(self.prev[1]), ord(self.prev[0])-ord('a')+1]
@@ -20,8 +23,45 @@ class Move():
 
     @staticmethod
     def cords_to_chess_not(x, y):
-        # TODO :  takes board coordinated and converts it to chess notation
-        pass
+        """
+        Converts 1-based board coordinates (x, y) to standard chess notation.
+
+        Args:
+            x (int): The 1-based x-coordinate (file, column) ranging from 1 to 8.
+            y (int): The 1-based y-coordinate (rank, row) ranging from 1 to 8.
+
+        Returns:
+            str: The chess notation (e.g., 'e4').
+        """
+        # Map x (1-8) to files ('a' to 'h')
+        files = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h']
+
+        # Convert x to the corresponding file, and y is already the rank
+        file = files[x - 1]  # Adjust x to be 0-based for the list index
+        rank = str(y)        # y is already 1-based, so no adjustment needed
+
+        # Return the chess notation (file + rank)
+        return file + rank
+
+    def to_json(self):
+        if self.is_valid:
+            print('hi')
+            if self.is_castle:
+                return {
+                    'from': self.prev,
+                    'to': self.curr,
+                    'castle': self.castle
+                }
+            else:
+                return {
+                    'from': self.prev,
+                    'to': self.curr
+                }
+        else:
+            print('bye')
+            return {
+                'message': 'INVALID'
+            }
 
     def __str__(self):
         return self.curr
@@ -37,7 +77,7 @@ class Game():
 
         # Both white and black has castle right
         self.white_castle_ks = self.white_castle_qs = True
-        self.black_castle_ks = self.black_caste_qs = True
+        self.black_castle_ks = self.black_castle_qs = True
 
         self.initialize_board()
 
@@ -64,10 +104,8 @@ class Game():
     def make_move(self, move):
         if self.is_valid_move(move):
             self.moves.append(move)
-            return True
         else:
-            print('INVALID MOVE')
-            return False
+            move.is_valid = False
 
     def is_valid_move(self, move):
         try:
@@ -100,6 +138,8 @@ class Game():
             # Store piece
             piece = self.board[x_prev][y_prev][1]
             is_valid = True
+            castle = False
+
             if piece == 'P':
                 # It is a Pawn
                 is_valid = self.is_valid_pawn_move(
@@ -108,7 +148,10 @@ class Game():
             elif piece == 'K':
                 # It is a King
                 is_valid = self.is_valid_king_move(
-                    x_prev, y_prev, x_curr, y_curr, piece_color) or self.is_castle(x_prev, y_prev, x_curr, y_curr, piece_color)
+                    x_prev, y_prev, x_curr, y_curr, piece_color)
+                castle = self.is_castle(
+                    x_prev, y_prev, x_curr, y_curr, piece_color)
+                is_valid = is_valid or castle
 
             elif piece == 'Q':
                 # It is a Queen
@@ -140,10 +183,66 @@ class Game():
             # It is a valid move
             self.board[x_curr][y_curr] = self.board[x_prev][y_prev]
             self.board[x_prev][y_prev] = ''
+
+            move.is_castle = castle
+            if castle and piece_color == 'white':
+                if y_prev < y_curr:
+                    # Castle on king side
+                    self.board[x_prev][y_prev+1] = self.board[x_prev][8]
+                    self.board[x_prev][8] = ''
+                    move.castle = {
+                        'from': 'h1',
+                        'to': 'f1'
+                    }
+                else:
+                    self.board[x_prev][y_curr+1] = self.board[x_prev][1]
+                    self.board[x_prev][1] = ''
+                    move.castle = {
+                        'from': 'a1',
+                        'to': 'd1'
+                    }
+
+            elif castle and piece_color == 'black':
+                if y_prev < y_curr:
+                    self.board[x_prev][y_prev+1] = self.board[x_prev][8]
+                    self.board[x_prev][8] = ''
+                    move.castle = {
+                        'from': 'h8',
+                        'to': 'f8'
+                    }
+                else:
+                    self.board[x_prev][y_curr+1] = self.board[x_prev][1]
+                    self.board[x_prev][1] = ''
+                    move.castle = {
+                        'from': 'a8',
+                        'to': 'd8'
+                    }
+
+            self.update_castle_rights(piece, piece_color)
+
             return True
         except Exception as e:
             print(e)
             return False
+
+    def update_castle_rights(self, piece, piece_color):
+        # If it is a king move then can not castle anymore
+        if piece == 'K':
+            if piece_color == 'white':
+                self.white_castle_ks = self.white_castle_qs = False
+            if piece_color == 'black':
+                self.black_castle_ks = self.black_castle_qs = False
+
+        # If rook is not at its place then can not castle on that side
+        if self.board[1][1] == '':
+            self.white_castle_qs = False
+        if self.board[1][8] == '':
+            self.white_castle_ks = False
+
+        if self.board[8][1] == '':
+            self.black_castle_qs = False
+        if self.board[8][8] == '':
+            self.black_castle_ks = False
 
     def is_valid_pawn_move(self, x_prev, y_prev, x_curr, y_curr, piece_color):
         is_valid = True
@@ -219,13 +318,6 @@ class Game():
         else:
             if self.board[x_curr][y_curr] != '' and self.board[x_curr][y_curr][0] == 'B':
                 is_valid = False
-
-        if is_valid:
-            # King can not castle anymore
-            if piece_color == 'white':
-                self.white_castle_ks = self.white_castle_qs = False
-            else:
-                self.black_caste_qs = self.black_castle_ks = False
 
         return is_valid
 
@@ -378,59 +470,8 @@ class Game():
         opponent_piece_color = 'B' if piece_color == 'white' else 'W'
 
         [x, y] = self.get_king_position(board_copy, king)
-        on_check = False
-        # Check on diagonals
 
-        # upper left
-        on_check = (on_check or self.check_on_diagonal(
-            board_copy, x, y, 1, -1, opponent_piece_color))
-        #  lower left
-        on_check = (on_check or self.check_on_diagonal(
-            board_copy, x, y, -1, -1, opponent_piece_color))
-        #  lower right
-        on_check = (on_check or self.check_on_diagonal(
-            board_copy, x, y, -1, 1, opponent_piece_color))
-        #  upper right
-        on_check = (on_check or self.check_on_diagonal(
-            board_copy, x, y, 1, 1, opponent_piece_color))
-        # Check on file
-        # Below
-        on_check = (on_check or self.check_on_file(
-            board_copy, x, y, x-1, 0, -1, opponent_piece_color))
-        # Above
-        on_check = (on_check or self.check_on_file(
-            board_copy, x, y, x+1, 9, 1, opponent_piece_color))
-        # Check on rank
-        # right
-        on_check = (on_check or self.check_on_rank(
-            board_copy, x, y, y+1, 9, 1, opponent_piece_color))
-        # Left
-        on_check = (on_check or self.check_on_rank(
-            board_copy, x, y, y-1, 0, -1, opponent_piece_color))
-
-        # Check for knight
-        on_check = (on_check or self.check_for_knight_attack(
-            board_copy, x, y, opponent_piece_color))
-
-        # Now check if opponent king is on adjacent square to our king
-        [opponent_king_x, opponent_king_y] = self.get_king_position(
-            board_copy, opponent_piece_color+'K')
-
-        if abs(x-opponent_king_x) == 1 and abs(y-opponent_king_y) == 1:
-            on_check = True
-
-        # Time to check for pawn attack
-        if piece_color == 'white':
-            if not Move.is_invalid_coordinates(x+1, y-1) and board_copy[x+1][y-1] == opponent_piece_color+'P':
-                on_check = True
-            elif not Move.is_invalid_coordinates(x+1, y+1) and board_copy[x+1][y+1] == opponent_piece_color+'P':
-                on_check = True
-        else:
-            if not Move.is_invalid_coordinates(x-1, y-1) and board_copy[x-1][y-1] == opponent_piece_color+'P':
-                on_check = True
-            elif not Move.is_invalid_coordinates(x-1, y+1) and board_copy[x-1][y+1] == opponent_piece_color+'P':
-                on_check = True
-        return on_check
+        return self.is_square_on_attack(x, y, piece_color, opponent_piece_color, board_copy)
 
     def is_square_on_attack(self, x, y, piece_color, opponent_piece_color, board=None):
         if board is None:
@@ -523,16 +564,17 @@ class Game():
         """
         Return true if square at x,y is under attack by opponent Knight
         """
-        on_check = False
+        on_attack = False
         del_x = [-2, -2, -1, -1, 1, 1, 2, 2]
         del_y = [-1, 1, -2, 2, -2, 2, -1, 1]
         for i in range(8):
             nx = x+del_x[i]
             ny = y+del_y[i]
             if not Move.is_invalid_coordinates(nx, ny) and board[nx][ny] != '' and board[nx][ny][0] == opponent and board[nx][ny][1] == 'N':
-                on_check = True
+                on_attack = True
                 break
-        return on_check
+        print("yes sssss", on_attack)
+        return on_attack
 
     def check_on_file(self, board, x, y, start, end, increment, opponent):
         """
@@ -589,12 +631,94 @@ class Game():
                     print(self.board[i][j], end='  ')
             print()
 
+    def is_castle(self, x_prev, y_prev, x_curr, y_curr, piece_color):
+
+        opponent_piece_color = 'W' if piece_color == 'black' else 'B'
+
+        # King did not changed its square
+        if y_curr == y_prev:
+            return False
+
+        # King can not move vertically
+        if abs(x_prev-x_curr) != 0:
+            return False
+
+        # Can castle to either c file or g file
+        if y_curr != 3 and y_curr != 7 and y_prev != 5:
+            return False
+
+        castle = True
+
+        if piece_color == 'white':
+
+            if self.is_square_on_attack(1, 5, piece_color, opponent_piece_color):
+                castle = False
+
+            elif x_curr != 1 or x_prev != 1:
+                castle = False
+
+            elif y_curr < y_prev:
+
+                # Castle on queen side
+                if not self.white_castle_qs:
+                    castle = False
+                else:
+                    for i in range(y_curr-1, y_prev):
+                        if (self.board[x_prev][i] != '') or self.is_square_on_attack(x_prev, i, piece_color, opponent_piece_color):
+                            castle = False
+                            break
+
+            else:
+                # Castle on king side
+                if not self.white_castle_ks:
+                    castle = False
+                else:
+                    for i in range(y_prev+1, y_curr+1):
+                        if self.board[x_prev][i] != '' or self.is_square_on_attack(x_prev, i, piece_color, opponent_piece_color):
+                            castle = False
+                            break
+
+        else:  # Piece color is black
+
+            if self.is_square_on_attack(8, 5, piece_color, opponent_piece_color):
+                castle = False
+
+            elif x_curr != 8 or x_prev != 8:
+                castle = False
+
+            elif y_curr < y_prev:
+                # Castle on queen side
+                if not self.black_castle_qs:
+                    castle = False
+                else:
+                    for i in range(y_curr-1, y_prev):
+                        if (self.board[x_prev][i] != '') or self.is_square_on_attack(x_prev, i, piece_color, opponent_piece_color):
+                            castle = False
+                            break
+
+            else:
+                # Castle on king side
+                if not self.black_castle_ks:
+                    castle = False
+                else:
+                    for i in range(y_prev+1, y_curr+1):
+                        print("i is ", i)
+                        print("xp is ", x_prev)
+                        print("pc", piece_color)
+                        print("opc", opponent_piece_color)
+                        if (self.board[x_prev][i] != '') or self.is_square_on_attack(x_prev, i, piece_color, opponent_piece_color):
+                            castle = False
+                            break
+
+        return castle
+
 
 # game = Game('U1', 'U2')
-
-
 # moves = [Move('U1', 'e2', 'e4'), Move(
 #     'U2', 'e7', 'e5'), Move('U1', 'g1', 'f3'), Move('U2', 'b8', 'c6'), Move('U1', 'f1', 'c4'), Move('U2', 'f8', 'c5'), Move('U1', 'b1', 'c3'), Move('U2', 'g8', 'f6'), Move('U1', 'd2', 'd3'), Move('U2', 'd7', 'd5'), Move('U1', 'e4', 'd5'), Move('U2', 'd8', 'd5'), Move('U1', 'c4', 'd5'), Move('U2', 'f6', 'd5'), Move('U1', 'f3', 'e5'), Move('U2', 'e8', 'e7'), Move('U1', 'e5', 'c6'), Move('U2', 'e7', 'd7'), Move('U1', 'a2', 'a4'), Move('U2', 'h8', 'e8'), Move('U1', 'd1', 'e2'), Move('U2', 'e8', 'e2'), Move('U1', 'e1', 'e2'), Move('U2', 'b7', 'c6'), Move('U1', 'b2', 'b4'), Move('U2', 'd7', 'd6'), Move('U1', 'b4', 'c5'), Move('U2', 'd6', 'c5'), Move('U1', 'c1', 'a3'), Move('U2', 'c5', 'd4'), Move('U1', 'e2', 'e1'), Move('U2', 'd4', 'c3'), Move('U1', 'a1', 'b1'), Move('U2', 'c3', 'c2')]
+
+# moves = [Move('U1', 'e2', 'e4'), Move(
+#     'U2', 'e7', 'e5'), Move('U1', 'g1', 'f3'), Move('U2', 'b8', 'c6'), Move('U1', 'f1', 'c4'), Move('U2', 'f8', 'c5'), Move('U1', 'b1', 'c3'), Move('U2', 'g8', 'f6'), Move('U1', 'd2', 'd3'), Move('U2', 'd7', 'd5'), Move('U1', 'c1', 'e3'), Move('U2', 'a7', 'a6'), Move('U1', 'd1', 'd2'), Move('U2', 'a6', 'a5'), Move('U1', 'e1', 'c1')]
 # for move in moves:
 #     game.make_move(move)
 
