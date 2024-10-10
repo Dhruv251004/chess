@@ -70,6 +70,15 @@ class GameConsumer(AsyncWebsocketConsumer):
         await self.accept()
 
     async def disconnect(self, close_code):
+        if GameConsumer.waiting_user == self.user:
+            GameConsumer.waiting_user = None
+        GameConsumer.waiting_room = None
+
+
+        if self.user in GameConsumer.players:
+            del GameConsumer.players[self.user]
+            del GameConsumer.piece_assignment[self.user]
+
         await self.channel_layer.group_discard(self.game_room_name, self.channel_name)
 
     # Receive message from WebSocket

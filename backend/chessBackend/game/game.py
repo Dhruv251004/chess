@@ -20,7 +20,7 @@ class Move():
 
     @staticmethod
     def cords_to_chess_not(x, y):
-        # takes board coordinated and converts it to chess notation
+        # TODO :  takes board coordinated and converts it to chess notation
         pass
 
     def __str__(self):
@@ -34,6 +34,11 @@ class Game():
         self.moves = []
         self.board = [['' for i in range(9)]
                       for j in range(9)]  # 8 X 8 chess board ( 1 based index )
+
+        # Both white and black has castle right
+        self.white_castle_ks = self.white_castle_qs = True
+        self.black_castle_ks = self.black_caste_qs = True
+
         self.initialize_board()
 
     def initialize_board(self):
@@ -103,7 +108,7 @@ class Game():
             elif piece == 'K':
                 # It is a King
                 is_valid = self.is_valid_king_move(
-                    x_prev, y_prev, x_curr, y_curr, piece_color)
+                    x_prev, y_prev, x_curr, y_curr, piece_color) or self.is_castle(x_prev, y_prev, x_curr, y_curr, piece_color)
 
             elif piece == 'Q':
                 # It is a Queen
@@ -214,6 +219,14 @@ class Game():
         else:
             if self.board[x_curr][y_curr] != '' and self.board[x_curr][y_curr][0] == 'B':
                 is_valid = False
+
+        if is_valid:
+            # King can not castle anymore
+            if piece_color == 'white':
+                self.white_castle_ks = self.white_castle_qs = False
+            else:
+                self.black_caste_qs = self.black_castle_ks = False
+
         return is_valid
 
     def is_valid_queen_move(self, x_prev, y_prev, x_curr, y_curr, piece_color):
@@ -418,6 +431,75 @@ class Game():
             elif not Move.is_invalid_coordinates(x-1, y+1) and board_copy[x-1][y+1] == opponent_piece_color+'P':
                 on_check = True
         return on_check
+
+    def is_square_on_attack(self, x, y, piece_color, opponent_piece_color, board=None):
+        if board is None:
+            board = self.board
+
+        on_attack = False
+
+        # Check on diagonals
+        # upper left
+        on_attack = (on_attack or self.check_on_diagonal(
+            board, x, y, 1, -1, opponent_piece_color)
+
+            #  lower left
+            or self.check_on_diagonal(
+            board, x, y, -1, -1, opponent_piece_color)
+
+            #  lower right
+            or self.check_on_diagonal(
+            board, x, y, -1, 1, opponent_piece_color)
+
+            #  upper right
+            or self.check_on_diagonal(
+            board, x, y, 1, 1, opponent_piece_color)
+
+
+            # Check on file
+            # Below
+            or self.check_on_file(
+            board, x, y, x-1, 0, -1, opponent_piece_color)
+
+            # Above
+            or self.check_on_file(
+            board, x, y, x+1, 9, 1, opponent_piece_color)
+
+
+            # Check on rank
+            # right
+            or self.check_on_rank(
+            board, x, y, y+1, 9, 1, opponent_piece_color)
+
+            # Left
+            or self.check_on_rank(
+            board, x, y, y-1, 0, -1, opponent_piece_color)
+
+
+            # Check for knight
+            or self.check_for_knight_attack(
+            board, x, y, opponent_piece_color))
+
+        # Now check if opponent king is on adjacent square to this square
+        [opponent_king_x, opponent_king_y] = self.get_king_position(
+            board, opponent_piece_color+'K')
+
+        if abs(x-opponent_king_x) == 1 and abs(y-opponent_king_y) == 1:
+            on_attack = True
+
+        # Time to check for pawn attack
+        if piece_color == 'white':
+            if not Move.is_invalid_coordinates(x+1, y-1) and board[x+1][y-1] == opponent_piece_color+'P':
+                on_attack = True
+            elif not Move.is_invalid_coordinates(x+1, y+1) and board[x+1][y+1] == opponent_piece_color+'P':
+                on_attack = True
+        else:
+            if not Move.is_invalid_coordinates(x-1, y-1) and board[x-1][y-1] == opponent_piece_color+'P':
+                on_attack = True
+            elif not Move.is_invalid_coordinates(x-1, y+1) and board[x-1][y+1] == opponent_piece_color+'P':
+                on_attack = True
+
+        return on_attack
 
     def check_on_diagonal(self, board, x, y, del_x, del_y, opponent):
         nx = x+del_x
