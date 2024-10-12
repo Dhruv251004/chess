@@ -20,6 +20,12 @@ class Move():
 
         self.is_checkmate = False
 
+        self.is_stalemate = False
+
+        self.is_capture = False
+
+        self.is_threefold = False
+
     def get_prev_coordinates(self):
         return [int(self.prev[1]), ord(self.prev[0])-ord('a')+1]
 
@@ -69,6 +75,16 @@ class Move():
             if self.is_checkmate:
                 response['checkmate'] = True
                 response['winner'] = self.user
+
+            elif self.is_stalemate:
+                response['stalemate'] = True
+
+            if self.is_capture:
+                response['capture'] = True
+
+            if self.is_threefold:
+                response['draw'] = True
+                response['threefold'] = True
 
             return response
         else:

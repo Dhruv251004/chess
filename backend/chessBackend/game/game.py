@@ -1,6 +1,7 @@
 import time
 import copy
 from .move import Move
+import json
 
 
 class Game():
@@ -15,8 +16,12 @@ class Game():
         self.white_castle_ks = self.white_castle_qs = True
         self.black_castle_ks = self.black_castle_qs = True
 
-        self.en_passant_white = set()  # Will store pawns that moved advanced two square
+        self.en_passant_white = set()  # Will store pawns that advanced two square
         self.en_passant_black = set()
+
+        self.board_positions = {}  # To check for three fold repetition
+
+        self.fifty_move_counter = 0
 
         self.initialize_board()
 
@@ -40,6 +45,9 @@ class Game():
         self.board[1][5] = 'WK'  # White King
         self.board[8][5] = 'BK'  # White King
 
+    def find_any_possible_move(self):
+        pass
+
     def make_move(self, move):
 
         if self.is_valid_move(move):
@@ -48,10 +56,48 @@ class Game():
             # Check for checkmate
             if self.is_checkmate(move):
                 move.is_checkmate = True
+
+            # Check for stalemate -- opponent king not on check but has no valid moe to make
+            if self.is_stalemate(move):
+                move.is_stalemate = True
+
+            if self.check_threefold_and_save_board():
+                move.is_threefold = True
+
             self.moves.append(move)
         else:
             move.is_valid = False
             print('Invalid move')
+
+    def is_stalemate(self, move):
+        opponent = self.white if move.user == self.black else self.black
+        opponent_king = 'WK' if move.user == self.black else 'BK'
+
+        [x, y] = self.get_king_position(self.board, opponent_king)
+
+        opponent_piece_color = 'white' if move.user == self.black else 'black'
+        piece_color = 'B' if opponent_piece_color == 'white' else 'W'
+
+        if self.is_square_on_attack(x, y, opponent_piece_color, piece_color):
+            return False
+        else:
+            # Now check if there is a valid move for opponent, if not then it is a stalemate
+            for i in range(1, 9):
+                for j in range(1, 9):
+
+                    prev = Move.cords_to_chess_not(i, j)
+
+                    for x in range(1, 9):
+                        for y in range(1, 9):
+
+                            curr = Move.cords_to_chess_not(x, y)
+
+                            opponent_move = Move(opponent, prev, curr)
+                            if self.is_valid_move(opponent_move, check_move_turn=False):
+                                return False
+
+            print("ha bhai stalemate hai")
+            return True
 
     def is_checkmate(self, move):
 
@@ -78,12 +124,12 @@ class Game():
                             curr = Move.cords_to_chess_not(x, y)
 
                             opponent_move = Move(opponent, prev, curr)
-                            if self.is_valid_move(opponent_move):
+                            if self.is_valid_move(opponent_move, check_move_turn=False):
                                 return False
 
             return True
 
-    def is_valid_move(self, move):
+    def is_valid_move(self, move, check_move_turn=True):
         try:
 
             # if  move.promote_to != 'Q' and move.promote_to != 'R' and move.promote_to != 'N' and move.promote_to != 'B':
@@ -92,12 +138,12 @@ class Game():
             [x_prev, y_prev] = move.get_prev_coordinates()
             [x_curr, y_curr] = move.get_curr_coordinates()
 
-            if len(self.moves) == 0 and move.user == self.black:  # Black makes first move?
-                return False
-
-            # Same player plays twice?
-            if len(self.moves) != 0 and move.user == self.moves[-1].user:
-                return False
+            if check_move_turn:
+                if len(self.moves) == 0 and move.user == self.black:  # Black makes first move?
+                    return False
+                # Same player plays twice?
+                if len(self.moves) != 0 and move.user == self.moves[-1].user:
+                    return False
 
             # Check if coordinates are valid or not
             if Move.is_invalid_coordinates(x_prev, y_prev) or Move.is_invalid_coordinates(x_curr, y_curr):
@@ -137,6 +183,7 @@ class Game():
                 castle = self.is_castle(
                     x_prev, y_prev, x_curr, y_curr, piece_color)
                 is_valid = is_valid or castle
+                print("valid king move ", is_valid)
 
             elif piece == 'Q':
                 # It is a Queen
@@ -163,6 +210,7 @@ class Game():
 
             # Now check if king is on check after the following move or not
             if not is_valid or self.is_king_on_check(x_prev, y_prev, x_curr, y_curr, piece_color):
+                print("ha bhai check pr h")
                 return False
 
             # It is a valid move
@@ -233,6 +281,17 @@ class Game():
         piece = self.board[x_prev][y_prev][1]
 
         # Update board
+        # is it a capture
+
+        if self.board[x_curr][y_curr] != '':
+            move.is_capture = True
+
+            # Clear all board position
+            self.board_positions.clear()
+
+            # Counter
+            self.fifty_move_counter = 1
+
         self.board[x_curr][y_curr] = self.board[x_prev][y_prev]
         self.board[x_prev][y_prev] = ''
 
@@ -281,9 +340,28 @@ class Game():
             x_prev, y_prev, x_curr, y_curr, piece, piece_color)
 
         if piece == 'P':
+            # counter
+            self.fifty_move_counter = 1
+
             # Handle Pawn Promotion
             move.promotion = self.handle_pawn_promotion(
                 x_curr, y_curr, piece_color, move.promote_to)
+
+    def check_threefold_and_save_board(self):
+        # JSON string to represent board
+        board_representation = json.dumps(self.board)
+
+        # Increment the count of this board position
+        if board_representation in self.board_positions:
+            self.board_positions[board_representation] += 1
+        else:
+            self.board_positions[board_representation] = 1
+
+        if self.board_positions[board_representation] >= 3:
+            return True
+
+        else:
+            return False
 
     def handle_pawn_promotion(self, x, y, piece_color, promote_to):
         if x != 8:
@@ -590,9 +668,10 @@ class Game():
 
         [x, y] = self.get_king_position(board_copy, king)
 
+        print("king is at ", king, x, y)
         res = self.is_square_on_attack(
             x, y, piece_color, opponent_piece_color, board_copy)
-        
+        print(res)
         return res
 
     def is_square_on_attack(self, x, y, piece_color, opponent_piece_color, board=None):
@@ -643,6 +722,8 @@ class Game():
             or self.check_for_knight_attack(
             board, x, y, opponent_piece_color))
 
+        print("after ", on_attack)
+
         # Now check if opponent king is on adjacent square to this square
         [opponent_king_x, opponent_king_y] = self.get_king_position(
             board, opponent_piece_color+'K')
@@ -656,6 +737,7 @@ class Game():
                 on_attack = True
             elif not Move.is_invalid_coordinates(x+1, y+1) and board[x+1][y+1] == opponent_piece_color+'P':
                 on_attack = True
+            print("pawn att")
         else:
             if not Move.is_invalid_coordinates(x-1, y-1) and board[x-1][y-1] == opponent_piece_color+'P':
                 on_attack = True
@@ -665,6 +747,8 @@ class Game():
         return on_attack
 
     def check_on_diagonal(self, board, x, y, del_x, del_y, opponent):
+        print(del_x)
+        print(del_y)
         nx = x+del_x
         ny = y+del_y
 
@@ -677,9 +761,10 @@ class Game():
                 else:
                     if board[nx][ny][1] == 'B' or board[nx][ny][1] == 'Q':
                         on_check = True
-                        break
+                    break
             nx += del_x
             ny += del_y
+        print("diagonal chk", on_check)
         return on_check
 
     def check_for_knight_attack(self, board, x, y, opponent):
@@ -710,6 +795,7 @@ class Game():
                     if board[i][y][1] == 'R' or board[i][y][1] == 'Q':
                         result = True
                     break
+        print("fchk", result)
         return result
 
     def check_on_rank(self, board, x, y, start, end, increment, opponent):
@@ -830,8 +916,9 @@ class Game():
         return castle
 
 
-# game = Game('U1', 'U2')
-
+game = Game('U1', 'U2')
+moves = [Move('U1', 'f2', 'f4'), Move('U2', 'e7', 'e5'), Move(
+    'U1', 'd2', 'd4'), Move('U2', 'd8', 'h4'), Move('U1', 'e1', 'd2'), Move('U2', 'f8', 'b4'), Move('U1', 'd2', 'd3'), Move('U2', 'h4', 'g3'), Move('U1', 'd3', 'e4'), Move('U2', 'g8', 'f6'), Move('U1', 'e4', 'f5')]
 # moves = [Move('U1', 'f2', 'f4'), Move('U2', 'e7', 'e5'),
 #          Move('U1', 'g2', 'g4'), Move('U2', 'd8', 'h4'),]
 #  Move('U1', 'e1', 'f2')
