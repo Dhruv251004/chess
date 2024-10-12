@@ -1,7 +1,8 @@
 import json
 import random
 from channels.generic.websocket import AsyncWebsocketConsumer
-from .game import Game, Move
+from .game import Game
+from .move import Move
 
 
 def generateRoomName(username):
@@ -88,9 +89,11 @@ class GameConsumer(AsyncWebsocketConsumer):
         prev_position = game_event["from"]
         curr_position = game_event["to"]
 
+        promote_to = None if 'promote_to' not in game_event else game_event['promote_to']
+
         game = GameConsumer.games[self.game_room_name]
 
-        move = Move(self.user, prev_position, curr_position)
+        move = Move(self.user, prev_position, curr_position, promote_to)
 
         # Make the move
         game.make_move(move)

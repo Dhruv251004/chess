@@ -59,13 +59,18 @@ const ChessBoard = () => {
                     });
                 }
 
-                // let board=JSON.parse(JSON.stringify(chessBoard));
-                // board[curr].piece=board[prev].piece
-                // board[curr].pieceColor=board[prev].pieceColor;
-
-                // board[prev].piece=board[prev].pieceColor=''
-
-                // setChessBoard(board)
+                if(data.event.en_passant){
+                    let position=data.event.en_passant
+                    console.log("hii",position)
+                    setChessBoard((prevBoard) => {
+                        const board = JSON.parse(JSON.stringify(prevBoard));
+                        // Clear the square
+                        board[position].piece = '';
+                        board[position].pieceColor = '';
+                        console.log("kr rha")
+                        return board; // Return the updated board
+                    });
+                }
             }
         }
 

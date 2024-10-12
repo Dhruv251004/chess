@@ -1,70 +1,6 @@
 import time
 import copy
-
-
-class Move():
-    def __init__(self, user, prev, curr):
-        self.user = user
-        self.prev = prev
-        self.curr = curr
-        self.is_castle = False
-        self.is_valid = True
-        self.castle = {}
-
-    def get_prev_coordinates(self):
-        return [int(self.prev[1]), ord(self.prev[0])-ord('a')+1]
-
-    def get_curr_coordinates(self):
-        return [int(self.curr[1]), ord(self.curr[0])-ord('a')+1]
-
-    @staticmethod
-    def is_invalid_coordinates(x, y):
-        return x <= 0 or y <= 0 or x >= 9 or y >= 9
-
-    @staticmethod
-    def cords_to_chess_not(x, y):
-        """
-        Converts 1-based board coordinates (x, y) to standard chess notation.
-
-        Args:
-            x (int): The 1-based x-coordinate (file, column) ranging from 1 to 8.
-            y (int): The 1-based y-coordinate (rank, row) ranging from 1 to 8.
-
-        Returns:
-            str: The chess notation (e.g., 'e4').
-        """
-        # Map x (1-8) to files ('a' to 'h')
-        files = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h']
-
-        # Convert x to the corresponding file, and y is already the rank
-        file = files[x - 1]  # Adjust x to be 0-based for the list index
-        rank = str(y)        # y is already 1-based, so no adjustment needed
-
-        # Return the chess notation (file + rank)
-        return file + rank
-
-    def to_json(self):
-        if self.is_valid:
-            print('hi')
-            if self.is_castle:
-                return {
-                    'from': self.prev,
-                    'to': self.curr,
-                    'castle': self.castle
-                }
-            else:
-                return {
-                    'from': self.prev,
-                    'to': self.curr
-                }
-        else:
-            print('bye')
-            return {
-                'message': 'INVALID'
-            }
-
-    def __str__(self):
-        return self.curr
+from .move import Move
 
 
 class Game():
@@ -78,6 +14,9 @@ class Game():
         # Both white and black has castle right
         self.white_castle_ks = self.white_castle_qs = True
         self.black_castle_ks = self.black_castle_qs = True
+
+        self.en_passant_white = set()  # Will store pawns that moved advanced two square
+        self.en_passant_black = set()
 
         self.initialize_board()
 
@@ -102,13 +41,54 @@ class Game():
         self.board[8][5] = 'BK'  # White King
 
     def make_move(self, move):
+
         if self.is_valid_move(move):
+            self.update_board(move)
+
+            # Check for checkmate
+            if self.is_checkmate(move):
+                move.is_checkmate = True
             self.moves.append(move)
         else:
             move.is_valid = False
+            print('Invalid move')
+
+    def is_checkmate(self, move):
+
+        opponent = self.white if move.user == self.black else self.black
+        opponent_king = 'WK' if move.user == self.black else 'BK'
+
+        [x, y] = self.get_king_position(self.board, opponent_king)
+
+        opponent_piece_color = 'white' if move.user == self.black else 'black'
+        piece_color = 'B' if opponent_piece_color == 'white' else 'W'
+
+        if not self.is_square_on_attack(x, y, opponent_piece_color, piece_color):
+            return False
+        else:
+            # Now check if there is a valid move for opponent, if not found then opponent has been checkmated
+            for i in range(1, 9):
+                for j in range(1, 9):
+
+                    prev = Move.cords_to_chess_not(i, j)
+
+                    for x in range(1, 9):
+                        for y in range(1, 9):
+
+                            curr = Move.cords_to_chess_not(x, y)
+
+                            opponent_move = Move(opponent, prev, curr)
+                            if self.is_valid_move(opponent_move):
+                                return False
+
+            return True
 
     def is_valid_move(self, move):
         try:
+
+            # if  move.promote_to != 'Q' and move.promote_to != 'R' and move.promote_to != 'N' and move.promote_to != 'B':
+            #     return False
+
             [x_prev, y_prev] = move.get_prev_coordinates()
             [x_curr, y_curr] = move.get_curr_coordinates()
 
@@ -139,11 +119,16 @@ class Game():
             piece = self.board[x_prev][y_prev][1]
             is_valid = True
             castle = False
+            enpassant = False
 
             if piece == 'P':
                 # It is a Pawn
                 is_valid = self.is_valid_pawn_move(
                     x_prev, y_prev, x_curr, y_curr, piece_color)
+                enpassant = self.is_enpassant(
+                    x_prev, y_prev, x_curr, y_curr, piece_color)
+
+                is_valid = is_valid or enpassant
 
             elif piece == 'K':
                 # It is a King
@@ -181,49 +166,184 @@ class Game():
                 return False
 
             # It is a valid move
-            self.board[x_curr][y_curr] = self.board[x_prev][y_prev]
-            self.board[x_prev][y_prev] = ''
-
+            # Castle
             move.is_castle = castle
-            if castle and piece_color == 'white':
-                if y_prev < y_curr:
-                    # Castle on king side
-                    self.board[x_prev][y_prev+1] = self.board[x_prev][8]
-                    self.board[x_prev][8] = ''
-                    move.castle = {
-                        'from': 'h1',
-                        'to': 'f1'
-                    }
-                else:
-                    self.board[x_prev][y_curr+1] = self.board[x_prev][1]
-                    self.board[x_prev][1] = ''
-                    move.castle = {
-                        'from': 'a1',
-                        'to': 'd1'
-                    }
+            move.is_enpassant = enpassant
+            # self.board[x_curr][y_curr] = self.board[x_prev][y_prev]
+            # self.board[x_prev][y_prev] = ''
 
-            elif castle and piece_color == 'black':
-                if y_prev < y_curr:
-                    self.board[x_prev][y_prev+1] = self.board[x_prev][8]
-                    self.board[x_prev][8] = ''
-                    move.castle = {
-                        'from': 'h8',
-                        'to': 'f8'
-                    }
-                else:
-                    self.board[x_prev][y_curr+1] = self.board[x_prev][1]
-                    self.board[x_prev][1] = ''
-                    move.castle = {
-                        'from': 'a8',
-                        'to': 'd8'
-                    }
+            # if castle and piece_color == 'white':
+            #     if y_prev < y_curr:
+            #         # Castle on king side
+            #         self.board[x_prev][y_prev+1] = self.board[x_prev][8]
+            #         self.board[x_prev][8] = ''
+            #         move.castle = {
+            #             'from': 'h1',
+            #             'to': 'f1'
+            #         }
+            #     else:
+            #         self.board[x_prev][y_curr+1] = self.board[x_prev][1]
+            #         self.board[x_prev][1] = ''
+            #         move.castle = {
+            #             'from': 'a1',
+            #             'to': 'd1'
+            #         }
 
-            self.update_castle_rights(piece, piece_color)
+            # elif castle and piece_color == 'black':
+            #     if y_prev < y_curr:
+            #         self.board[x_prev][y_prev+1] = self.board[x_prev][8]
+            #         self.board[x_prev][8] = ''
+            #         move.castle = {
+            #             'from': 'h8',
+            #             'to': 'f8'
+            #         }
+            #     else:
+            #         self.board[x_prev][y_curr+1] = self.board[x_prev][1]
+            #         self.board[x_prev][1] = ''
+            #         move.castle = {
+            #             'from': 'a8',
+            #             'to': 'd8'
+            #         }
 
+            # self.update_castle_rights(piece, piece_color)
+
+            # # handle enpassant pawns
+            # if enpassant:
+            #     move.is_enpassant = True
+            #     move.enpass_square = Move.cords_to_chess_not(x_prev, y_curr)
+            #     self.board[x_prev][y_curr] = ''
+
+            # self.update_enpassant_pawns(
+            #     x_prev, y_prev, x_curr, y_curr, piece, piece_color)
+
+            # if piece == 'P':
+            #     # Handle Pawn Promotion
+            #     move.promotion = self.handle_pawn_promotion(
+            #         x_curr, y_curr, piece, piece_color, move.promote_to)
             return True
         except Exception as e:
             print(e)
             return False
+
+    def update_board(self, move):
+
+        [x_prev, y_prev] = move.get_prev_coordinates()
+        [x_curr, y_curr] = move.get_curr_coordinates()
+        piece_color = 'white' if self.board[x_prev][y_prev][0] == 'W' else 'black'
+        piece = self.board[x_prev][y_prev][1]
+
+        # Update board
+        self.board[x_curr][y_curr] = self.board[x_prev][y_prev]
+        self.board[x_prev][y_prev] = ''
+
+        # Castle
+        if move.is_castle and piece_color == 'white':
+            if y_prev < y_curr:
+                # Castle on king side
+                self.board[x_prev][y_prev+1] = self.board[x_prev][8]
+                self.board[x_prev][8] = ''
+                move.castle = {
+                    'from': 'h1',
+                    'to': 'f1'
+                }
+            else:
+                self.board[x_prev][y_curr+1] = self.board[x_prev][1]
+                self.board[x_prev][1] = ''
+                move.castle = {
+                    'from': 'a1',
+                    'to': 'd1'
+                }
+
+        elif move.is_castle and piece_color == 'black':
+            if y_prev < y_curr:
+                self.board[x_prev][y_prev+1] = self.board[x_prev][8]
+                self.board[x_prev][8] = ''
+                move.castle = {
+                    'from': 'h8',
+                    'to': 'f8'
+                }
+            else:
+                self.board[x_prev][y_curr+1] = self.board[x_prev][1]
+                self.board[x_prev][1] = ''
+                move.castle = {
+                    'from': 'a8',
+                    'to': 'd8'
+                }
+
+        self.update_castle_rights(piece, piece_color)
+
+        # handle enpassant pawns
+        if move.is_enpassant:
+            move.enpass_square = Move.cords_to_chess_not(x_prev, y_curr)
+            self.board[x_prev][y_curr] = ''
+
+        self.update_enpassant_pawns(
+            x_prev, y_prev, x_curr, y_curr, piece, piece_color)
+
+        if piece == 'P':
+            # Handle Pawn Promotion
+            move.promotion = self.handle_pawn_promotion(
+                x_curr, y_curr, piece_color, move.promote_to)
+
+    def handle_pawn_promotion(self, x, y, piece_color, promote_to):
+        if x != 8:
+            return False
+
+        piece_color_short = 'W' if piece_color == 'white' else 'B'
+
+        if piece_color_short == 'W':
+            self.board[x][y] = piece_color_short+promote_to
+        else:
+            self.board[x][y] = piece_color_short+promote_to
+
+        return True
+
+    def is_enpassant(self, x_prev, y_prev, x_curr, y_curr, piece_color):
+
+        if y_curr == y_prev:
+            return False
+
+        if piece_color == 'white':
+            if x_prev >= x_curr:
+                return False
+        else:
+            if x_prev <= x_curr:
+                return False
+
+        if abs(x_prev-x_curr) != 1 or abs(y_prev-y_curr) != 1:
+            return False
+
+        x = x_prev
+        y = y_curr
+
+        if piece_color == 'white':
+            if (x, y) not in self.en_passant_black:
+                return False
+        else:
+            if (x, y) not in self.en_passant_white:
+                return False
+
+        return True
+
+    def update_enpassant_pawns(self, x_prev, y_prev, x_curr, y_curr, piece, piece_color):
+
+        if piece_color == 'white':
+            self.en_passant_black = set()
+            if x_prev == 2 and x_curr == 4 and piece == 'P':
+                self.add_enpassant_pawn(x_curr, y_curr, piece_color)
+        else:
+            self.en_passant_white = set()
+            if x_prev == 7 and x_curr == 5 and piece == 'P':
+                self.add_enpassant_pawn(x_curr, y_curr, piece_color)
+
+    def add_enpassant_pawn(self, x, y, piece_color):
+        """
+            Added pawn on which enpassant move is possible
+        """
+        if piece_color == 'W':
+            self.en_passant_white.add((x, y))
+        else:
+            self.en_passant_black.add((x, y))
 
     def update_castle_rights(self, piece, piece_color):
         # If it is a king move then can not castle anymore
@@ -466,12 +586,14 @@ class Game():
         board_copy[x_prev][y_prev] = ''
 
         king = 'WK' if piece_color == 'white' else 'BK'
-        user_piece = 'W' if piece_color == 'white' else 'B'
         opponent_piece_color = 'B' if piece_color == 'white' else 'W'
 
         [x, y] = self.get_king_position(board_copy, king)
 
-        return self.is_square_on_attack(x, y, piece_color, opponent_piece_color, board_copy)
+        res = self.is_square_on_attack(
+            x, y, piece_color, opponent_piece_color, board_copy)
+        
+        return res
 
     def is_square_on_attack(self, x, y, piece_color, opponent_piece_color, board=None):
         if board is None:
@@ -573,7 +695,6 @@ class Game():
             if not Move.is_invalid_coordinates(nx, ny) and board[nx][ny] != '' and board[nx][ny][0] == opponent and board[nx][ny][1] == 'N':
                 on_attack = True
                 break
-        print("yes sssss", on_attack)
         return on_attack
 
     def check_on_file(self, board, x, y, start, end, increment, opponent):
@@ -702,10 +823,6 @@ class Game():
                     castle = False
                 else:
                     for i in range(y_prev+1, y_curr+1):
-                        print("i is ", i)
-                        print("xp is ", x_prev)
-                        print("pc", piece_color)
-                        print("opc", opponent_piece_color)
                         if (self.board[x_prev][i] != '') or self.is_square_on_attack(x_prev, i, piece_color, opponent_piece_color):
                             castle = False
                             break
@@ -714,21 +831,25 @@ class Game():
 
 
 # game = Game('U1', 'U2')
+
+# moves = [Move('U1', 'f2', 'f4'), Move('U2', 'e7', 'e5'),
+#          Move('U1', 'g2', 'g4'), Move('U2', 'd8', 'h4'),]
+#  Move('U1', 'e1', 'f2')
 # moves = [Move('U1', 'e2', 'e4'), Move(
 #     'U2', 'e7', 'e5'), Move('U1', 'g1', 'f3'), Move('U2', 'b8', 'c6'), Move('U1', 'f1', 'c4'), Move('U2', 'f8', 'c5'), Move('U1', 'b1', 'c3'), Move('U2', 'g8', 'f6'), Move('U1', 'd2', 'd3'), Move('U2', 'd7', 'd5'), Move('U1', 'e4', 'd5'), Move('U2', 'd8', 'd5'), Move('U1', 'c4', 'd5'), Move('U2', 'f6', 'd5'), Move('U1', 'f3', 'e5'), Move('U2', 'e8', 'e7'), Move('U1', 'e5', 'c6'), Move('U2', 'e7', 'd7'), Move('U1', 'a2', 'a4'), Move('U2', 'h8', 'e8'), Move('U1', 'd1', 'e2'), Move('U2', 'e8', 'e2'), Move('U1', 'e1', 'e2'), Move('U2', 'b7', 'c6'), Move('U1', 'b2', 'b4'), Move('U2', 'd7', 'd6'), Move('U1', 'b4', 'c5'), Move('U2', 'd6', 'c5'), Move('U1', 'c1', 'a3'), Move('U2', 'c5', 'd4'), Move('U1', 'e2', 'e1'), Move('U2', 'd4', 'c3'), Move('U1', 'a1', 'b1'), Move('U2', 'c3', 'c2')]
 
 # moves = [Move('U1', 'e2', 'e4'), Move(
 #     'U2', 'e7', 'e5'), Move('U1', 'g1', 'f3'), Move('U2', 'b8', 'c6'), Move('U1', 'f1', 'c4'), Move('U2', 'f8', 'c5'), Move('U1', 'b1', 'c3'), Move('U2', 'g8', 'f6'), Move('U1', 'd2', 'd3'), Move('U2', 'd7', 'd5'), Move('U1', 'c1', 'e3'), Move('U2', 'a7', 'a6'), Move('U1', 'd1', 'd2'), Move('U2', 'a6', 'a5'), Move('U1', 'e1', 'c1')]
-# for move in moves:
-#     game.make_move(move)
+for move in moves:
+    game.make_move(move)
 
-# for i in range(8, 0, -1):
-#     for j in range(1, 9):
-#         if game.board[i][j] == '':
-#             print('  ', end='  ')
-#         else:
-#             print(game.board[i][j], end='  ')
-#     print()
+for i in range(8, 0, -1):
+    for j in range(1, 9):
+        if game.board[i][j] == '':
+            print('  ', end='  ')
+        else:
+            print(game.board[i][j], end='  ')
+    print()
 
 
 # print(game.board)
