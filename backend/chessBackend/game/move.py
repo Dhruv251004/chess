@@ -26,6 +26,8 @@ class Move():
 
         self.is_threefold = False
 
+        self.is_insufficient_material = False
+
     def get_prev_coordinates(self):
         return [int(self.prev[1]), ord(self.prev[0])-ord('a')+1]
 
@@ -85,6 +87,10 @@ class Move():
             if self.is_threefold:
                 response['draw'] = True
                 response['threefold'] = True
+
+            if self.is_insufficient_material:
+                response['draw'] = True
+                response['insufficient material'] = True
 
             return response
         else:

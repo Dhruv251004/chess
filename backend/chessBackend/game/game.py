@@ -64,10 +64,87 @@ class Game():
             if self.check_threefold_and_save_board():
                 move.is_threefold = True
 
+            if self.is_insufficient_material():
+                move.is_insufficient_material = True
+
             self.moves.append(move)
         else:
             move.is_valid = False
             print('Invalid move')
+
+    def is_insufficient_material(self):
+        white_pieces = {}
+        black_pieces = {}
+
+        for i in range(1, 9):
+            for j in range(1, 9):
+                if self.board[i][j] != '' and self.board[i][j][0] == 'W':
+                    if self.board[i][j] not in white_pieces:
+                        white_pieces[self.board[i][j]] = []
+                    white_pieces[self.board[i][j]].append([i, j])
+                elif self.board[i][j] != '' and self.board[i][j][0] == 'B':
+                    if self.board[i][j] not in black_pieces:
+                        black_pieces[self.board[i][j]] = []
+                    black_pieces[self.board[i][j]].append([i, j])
+
+        print("white pcs", white_pieces)
+        print("black pcs", black_pieces)
+
+        # Possible draws
+        # K vs K
+        # K vs K + B
+        # K vs K + N
+        # K + B vs K + B ( same color bishops )
+
+        if self.is_k_vs_k(white_pieces, black_pieces):
+            print("kk match")
+            return True
+
+        elif self.is_k_vs_kb(white_pieces, black_pieces, 'B') or self.is_k_vs_kb(black_pieces, white_pieces, 'W'):
+            print("kb match")
+            return True
+
+        elif self.is_k_vs_kn(white_pieces, black_pieces, 'B') or self.is_k_vs_kn(black_pieces, white_pieces, 'W'):
+            print("kn match")
+            return True
+
+        elif self.is_kb_vs_kb(white_pieces, black_pieces):
+            print("kbkb match")
+            return True
+
+        print("No insufficient material draw")
+        return False
+
+    def is_kb_vs_kb(self, white_pieces, black_pieces):
+        # Check for King + Bishop vs King + Bishop on same color squares
+        if len(white_pieces) == 2 and len(black_pieces) == 2:
+            if 'WB' in white_pieces and 'BB' in black_pieces:
+                if len(white_pieces['WB']) != 1 or len(black_pieces['BB']) != 1:
+                    return False
+                else:
+                    white_bishop_pos = white_pieces['WB'][0]
+                    black_bishop_pos = black_pieces['BB'][0]
+
+                    if (white_bishop_pos[0]+white_bishop_pos[1]) % 2 == (black_bishop_pos[0]+black_bishop_pos[1]) % 2:
+                        return True
+                    return False
+
+            else:
+                return False
+
+        return False
+
+    def is_k_vs_kn(self, piece_set_1, piece_set_2, knight_color):
+        if len(piece_set_1) == 1 and len(piece_set_2) == 2 and ((knight_color+'N') in piece_set_2) and len(piece_set_2[knight_color+'N']) == 1:
+            return True
+
+    def is_k_vs_kb(self, piece_set_1, piece_set_2, bishop_color):
+        if len(piece_set_1) == 1 and len(piece_set_2) == 2 and ((bishop_color+'B') in piece_set_2) and len(piece_set_2[bishop_color+'B']) == 1:
+            return True
+        return False
+
+    def is_k_vs_k(self, white_pieces, black_pieces):
+        return len(white_pieces) == 1 and len(black_pieces) == 1
 
     def is_stalemate(self, move):
         opponent = self.white if move.user == self.black else self.black
@@ -96,7 +173,6 @@ class Game():
                             if self.is_valid_move(opponent_move, check_move_turn=False):
                                 return False
 
-            print("ha bhai stalemate hai")
             return True
 
     def is_checkmate(self, move):
@@ -917,8 +993,33 @@ class Game():
 
 
 game = Game('U1', 'U2')
-moves = [Move('U1', 'f2', 'f4'), Move('U2', 'e7', 'e5'), Move(
-    'U1', 'd2', 'd4'), Move('U2', 'd8', 'h4'), Move('U1', 'e1', 'd2'), Move('U2', 'f8', 'b4'), Move('U1', 'd2', 'd3'), Move('U2', 'h4', 'g3'), Move('U1', 'd3', 'e4'), Move('U2', 'g8', 'f6'), Move('U1', 'e4', 'f5')]
+
+
+moves = [
+    Move('U1', 'e2', 'e4'),
+    Move('U2', 'e7', 'e5'),
+    Move('U1', 'd2', 'd4'),
+    Move('U2', 'd8', 'h4'),
+    Move('U1', 'e1', 'd2'),
+    Move('U2', 'f8', 'b4'),
+    Move('U1', 'd2', 'd3'),
+    Move('U2', 'h4', 'g3'),
+    Move('U1', 'd3', 'e4'),
+    Move('U2', 'g8', 'f6'),
+    Move('U1', 'e4', 'f5'),
+    Move('U2', 'f6', 'f4'),
+    Move('U1', 'f5', 'f6'),
+    Move('U2', 'b4', 'b5'),
+    Move('U1', 'f6', 'g6'),
+    Move('U2', 'b5', 'b6'),
+    Move('U1', 'g6', 'g7'),
+    Move('U2', 'b6', 'b7'),
+    Move('U1', 'g7', 'g8'),
+    Move('U2', 'b7', 'b8')
+]
+
+# moves = [Move('U1', 'f2', 'f4'), Move('U2', 'e7', 'e5'), Move(
+#     'U1', 'd2', 'd4'), Move('U2', 'd8', 'h4'), Move('U1', 'e1', 'd2'), Move('U2', 'f8', 'b4'), Move('U1', 'd2', 'd3'), Move('U2', 'h4', 'g3'), Move('U1', 'd3', 'e4'), Move('U2', 'g8', 'f6'), Move('U1', 'e4', 'f5')]
 # moves = [Move('U1', 'f2', 'f4'), Move('U2', 'e7', 'e5'),
 #          Move('U1', 'g2', 'g4'), Move('U2', 'd8', 'h4'),]
 #  Move('U1', 'e1', 'f2')

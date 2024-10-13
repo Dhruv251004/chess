@@ -67,7 +67,6 @@ const ChessBoard = () => {
                         // Clear the square
                         board[position].piece = '';
                         board[position].pieceColor = '';
-                        console.log("kr rha")
                         return board; // Return the updated board
                     });
                 }
@@ -105,7 +104,7 @@ const ChessBoard = () => {
    } 
 
   return (
-    <div >
+    <div>
         <div>
             <input ref={usernameRef} placeholder='Enter your username' type="text" className='bg-black text-white'/>
             <button onClick={()=>{
