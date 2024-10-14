@@ -1,8 +1,9 @@
 import json
 import random
 from channels.generic.websocket import AsyncWebsocketConsumer
-from .game import Game
-from .move import Move
+from .game_essentials.game import Game
+from .game_essentials.move import Move
+import asyncio
 
 
 def generateRoomName(username):
@@ -50,6 +51,8 @@ class GameConsumer(AsyncWebsocketConsumer):
                 )
 
                 # Start game
+                # await GameConsumer.games[GameConsumer.waiting_room].start_clock()
+                asyncio.create_task(GameConsumer.games[GameConsumer.waiting_room].start_clock())
                 await self.channel_layer.group_send(
                     self.game_room_name, {
                         'type': 'game.room', 'event': {'message': 'START', self.user: GameConsumer.piece_assignment[self.user], GameConsumer.waiting_user: GameConsumer.piece_assignment[GameConsumer.waiting_user]
@@ -96,7 +99,7 @@ class GameConsumer(AsyncWebsocketConsumer):
         move = Move(self.user, prev_position, curr_position, promote_to)
 
         # Make the move
-        game.make_move(move)
+        await game.make_move(move)
 
         response = move.to_json()
 

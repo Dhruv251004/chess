@@ -1,8 +1,8 @@
 
 class Move():
-    def __init__(self, user, prev, curr, promote_to=None):
+    def __init__(self, player, prev, curr, promote_to=None):
 
-        self.user = user
+        self.player = player
 
         self.prev = prev
         self.curr = curr
@@ -27,6 +27,11 @@ class Move():
         self.is_threefold = False
 
         self.is_insufficient_material = False
+
+        self.game_ends = False
+
+        self.time_left_white = 0
+        self.time_left_black = 0
 
     def get_prev_coordinates(self):
         return [int(self.prev[1]), ord(self.prev[0])-ord('a')+1]
@@ -65,6 +70,8 @@ class Move():
             response = {
                 'from': self.prev,
                 'to': self.curr,
+                'white_time': self.time_left_white,
+                'black_time': self.time_left_black
             }
             if self.is_castle:
                 response['castle'] = self.castle
@@ -76,7 +83,7 @@ class Move():
 
             if self.is_checkmate:
                 response['checkmate'] = True
-                response['winner'] = self.user
+                response['winner'] = self.player
 
             elif self.is_stalemate:
                 response['stalemate'] = True

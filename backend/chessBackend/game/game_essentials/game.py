@@ -2,12 +2,14 @@ import time
 import copy
 from .move import Move
 import json
+from .chess_clock import ChessClock
+import asyncio
 
 
 class Game():
-    def __init__(self, user1, user2):
-        self.white = user1
-        self.black = user2
+    def __init__(self, player1, player2):
+        self.white = player1
+        self.black = player2
         self.moves = []
         self.board = [['' for i in range(9)]
                       for j in range(9)]  # 8 X 8 chess board ( 1 based index )
@@ -24,6 +26,17 @@ class Game():
         self.fifty_move_counter = 0
 
         self.initialize_board()
+
+        # 10 minute game with 2 seconds increment
+        self.clock = ChessClock(600, 2)
+
+    def stop_game(self):
+        """Stop the game and clock when the game ends."""
+        self.clock.stop()
+
+    async def start_clock(self):
+        """Starts the clock asynchronously."""
+        await self.clock.start()
 
     def initialize_board(self):
         for i in range(1, 9):
@@ -48,24 +61,35 @@ class Game():
     def find_any_possible_move(self):
         pass
 
-    def make_move(self, move):
+    async def make_move(self, move):
 
         if self.is_valid_move(move):
             self.update_board(move)
 
             # Check for checkmate
             if self.is_checkmate(move):
-                move.is_checkmate = True
+                self.stop_game()
+                move.game_ends = move.is_checkmate = True
 
             # Check for stalemate -- opponent king not on check but has no valid moe to make
             if self.is_stalemate(move):
-                move.is_stalemate = True
+                self.stop_game()
+                move.game_ends = move.is_stalemate = True
 
             if self.check_threefold_and_save_board():
-                move.is_threefold = True
+                self.stop_game()
+                move.game_ends = move.is_threefold = True
 
             if self.is_insufficient_material():
-                move.is_insufficient_material = True
+                self.stop_game()
+                move.game_ends = move.is_insufficient_material = True
+
+            # Switch clock
+            if self.clock.running:
+                await self.clock.switch_turn()
+
+            move.time_left_white = self.clock.white_time
+            move.time_left_black = self.clock.black_time
 
             self.moves.append(move)
         else:
@@ -147,12 +171,12 @@ class Game():
         return len(white_pieces) == 1 and len(black_pieces) == 1
 
     def is_stalemate(self, move):
-        opponent = self.white if move.user == self.black else self.black
-        opponent_king = 'WK' if move.user == self.black else 'BK'
+        opponent = self.white if move.player == self.black else self.black
+        opponent_king = 'WK' if move.player == self.black else 'BK'
 
         [x, y] = self.get_king_position(self.board, opponent_king)
 
-        opponent_piece_color = 'white' if move.user == self.black else 'black'
+        opponent_piece_color = 'white' if move.player == self.black else 'black'
         piece_color = 'B' if opponent_piece_color == 'white' else 'W'
 
         if self.is_square_on_attack(x, y, opponent_piece_color, piece_color):
@@ -177,12 +201,12 @@ class Game():
 
     def is_checkmate(self, move):
 
-        opponent = self.white if move.user == self.black else self.black
-        opponent_king = 'WK' if move.user == self.black else 'BK'
+        opponent = self.white if move.player == self.black else self.black
+        opponent_king = 'WK' if move.player == self.black else 'BK'
 
         [x, y] = self.get_king_position(self.board, opponent_king)
 
-        opponent_piece_color = 'white' if move.user == self.black else 'black'
+        opponent_piece_color = 'white' if move.player == self.black else 'black'
         piece_color = 'B' if opponent_piece_color == 'white' else 'W'
 
         if not self.is_square_on_attack(x, y, opponent_piece_color, piece_color):
@@ -215,10 +239,10 @@ class Game():
             [x_curr, y_curr] = move.get_curr_coordinates()
 
             if check_move_turn:
-                if len(self.moves) == 0 and move.user == self.black:  # Black makes first move?
+                if len(self.moves) == 0 and move.player == self.black:  # Black makes first move?
                     return False
                 # Same player plays twice?
-                if len(self.moves) != 0 and move.user == self.moves[-1].user:
+                if len(self.moves) != 0 and move.player == self.moves[-1].player:
                     return False
 
             # Check if coordinates are valid or not
@@ -229,12 +253,12 @@ class Game():
             if self.board[x_prev][y_prev] == '' or (self.board[x_curr][y_curr] != '' and self.board[x_curr][y_curr][0] == self.board[x_prev][y_prev][0]):
                 return False
 
-            # Check if user can move piece of that color
+            # Check if player can move piece of that color
             piece_color = 'white' if self.board[x_prev][y_prev][0] == 'W' else 'black'
 
-            if piece_color == 'white' and self.white != move.user:
+            if piece_color == 'white' and self.white != move.player:
                 return False
-            elif piece_color == 'black' and self.black != move.user:
+            elif piece_color == 'black' and self.black != move.player:
                 return False
 
             # Store piece
@@ -1028,16 +1052,16 @@ moves = [
 
 # moves = [Move('U1', 'e2', 'e4'), Move(
 #     'U2', 'e7', 'e5'), Move('U1', 'g1', 'f3'), Move('U2', 'b8', 'c6'), Move('U1', 'f1', 'c4'), Move('U2', 'f8', 'c5'), Move('U1', 'b1', 'c3'), Move('U2', 'g8', 'f6'), Move('U1', 'd2', 'd3'), Move('U2', 'd7', 'd5'), Move('U1', 'c1', 'e3'), Move('U2', 'a7', 'a6'), Move('U1', 'd1', 'd2'), Move('U2', 'a6', 'a5'), Move('U1', 'e1', 'c1')]
-for move in moves:
-    game.make_move(move)
+# for move in moves:
+# game.make_move(move)
 
-for i in range(8, 0, -1):
-    for j in range(1, 9):
-        if game.board[i][j] == '':
-            print('  ', end='  ')
-        else:
-            print(game.board[i][j], end='  ')
-    print()
+# for i in range(8, 0, -1):
+#     for j in range(1, 9):
+#         if game.board[i][j] == '':
+#             print('  ', end='  ')
+#         else:
+#             print(game.board[i][j], end='  ')
+#     print()
 
 
 # print(game.board)
