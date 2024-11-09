@@ -1,12 +1,23 @@
 const initialBoard = {
-  a1: { piece: "rook", pieceColor: "white", squareColor: "dark" },
+  a1: {
+    piece: "rook",
+    pieceColor: "white",
+    squareColor: "dark",
+    isCorner: true,
+  },
   b1: { piece: "knight", pieceColor: "white", squareColor: "light" },
   c1: { piece: "bishop", pieceColor: "white", squareColor: "dark" },
   d1: { piece: "queen", pieceColor: "white", squareColor: "light" },
   e1: { piece: "king", pieceColor: "white", squareColor: "dark" },
   f1: { piece: "bishop", pieceColor: "white", squareColor: "light" },
   g1: { piece: "knight", pieceColor: "white", squareColor: "dark" },
-  h1: { piece: "rook", pieceColor: "white", squareColor: "light" },
+  h1: {
+    piece: "rook",
+    pieceColor: "white",
+    squareColor: "light",
+    isCorner: true,
+    cornerPos:'tr'
+  },
 
   a2: { piece: "pawn", pieceColor: "white", squareColor: "light" },
   b2: { piece: "pawn", pieceColor: "white", squareColor: "dark" },
@@ -62,14 +73,24 @@ const initialBoard = {
   g7: { piece: "pawn", pieceColor: "black", squareColor: "dark" },
   h7: { piece: "pawn", pieceColor: "black", squareColor: "light" },
 
-  a8: { piece: "rook", pieceColor: "black", squareColor: "light" },
+  a8: {
+    piece: "rook",
+    pieceColor: "black",
+    squareColor: "light",
+    isCorner: true,
+  },
   b8: { piece: "knight", pieceColor: "black", squareColor: "dark" },
   c8: { piece: "bishop", pieceColor: "black", squareColor: "light" },
   d8: { piece: "queen", pieceColor: "black", squareColor: "dark" },
   e8: { piece: "king", pieceColor: "black", squareColor: "light" },
   f8: { piece: "bishop", pieceColor: "black", squareColor: "dark" },
   g8: { piece: "knight", pieceColor: "black", squareColor: "light" },
-  h8: { piece: "rook", pieceColor: "black", squareColor: "dark" },
+  h8: {
+    piece: "rook",
+    pieceColor: "black",
+    squareColor: "dark",
+    isCorner: true,
+  },
 };
 
 export default initialBoard;

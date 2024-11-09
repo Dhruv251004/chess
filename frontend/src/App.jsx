@@ -1,15 +1,27 @@
-import { useState } from 'react'
-import ChessBoard from './components/ChessBoard'
+import { BrowserRouter, Route,Routes } from "react-router-dom";
+import Login from "./pages/auth/Login";
+import Register from "./pages/auth/Register";
+import ProtectedRoute from "./components/ProtectedRoute";
+import Home from "./pages/Home/Home";
+import Play from "./pages/play/Play";
 
 
 function App() {
 
   return (
-    <>
-    <div className='w-screen h-screen flex justify-center items-center'>
-    <ChessBoard/>
-    </div>
-    </>
+    <BrowserRouter>
+      <Routes>
+        <Route path='/login' element={<Login/>}/>
+        <Route path='/register' element={<Register/>}/>
+        <Route path='/' >
+            <Route path='' element={<ProtectedRoute>
+              <Home/>
+            </ProtectedRoute>}/>
+            <Route path="/profile" element={<Login/>}/>
+            <Route path="/play" element={<Play/>}/>
+        </Route>
+      </Routes>
+    </BrowserRouter>
   )
 }
 

@@ -83,7 +83,7 @@ class Move():
 
             if self.is_checkmate:
                 response['checkmate'] = True
-                response['winner'] = self.player
+                response['winner'] = self.player.username
 
             elif self.is_stalemate:
                 response['stalemate'] = True
@@ -98,6 +98,9 @@ class Move():
             if self.is_insufficient_material:
                 response['draw'] = True
                 response['insufficient material'] = True
+
+            if self.game_ends:
+                response['ends']=True
 
             return response
         else:

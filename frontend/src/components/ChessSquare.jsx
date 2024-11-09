@@ -13,13 +13,14 @@ import blackKing from '../assets/bk.png';
 import blackRook from '../assets/br.png';
 import blackBishop from '../assets/bb.png';
 import blackPawn from '../assets/bp.png';
+import darkSquare from '../assets/dark_sq.png'
+import lightSquare from '../assets/light_sq.png'
 
 const ChessSquare = ({ color, square }) => {
   const [piece, setPiece] = useState("");
   
   useEffect(() => {
     let selectedPiece = "";
-    
     if (square.pieceColor === 'white') {
       switch (square.piece) {
         case 'pawn':
@@ -71,12 +72,20 @@ const ChessSquare = ({ color, square }) => {
     setPiece(selectedPiece);
   }, [square]);
 
-  const squareColor=color
+  const bg=color==='light'?darkSquare:lightSquare;
+
   return (
     <div
-      style={{ backgroundImage: `url(${piece})`, backgroundSize: 'cover' }}
-      className={`w-12 h-12 bg-${squareColor}`}
-    >
+      style={{ background: `url(${bg}) no-repeat center center/cover`}}
+      className={`w-20 h-20`}>
+      <div
+      className={`w-20 h-20`}
+        style={{
+          background: piece ? `url(${piece}) no-repeat center center/cover` : "none",
+          zIndex: 2,
+        }}
+      >
+      </div>
     </div>
   );
 };

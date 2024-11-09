@@ -3,12 +3,13 @@ import time
 
 
 class ChessClock:
-    def __init__(self, time_per_player, increment):
+    def __init__(self, time_per_player, increment, call_back=None):
         self.white_time = time_per_player  # Time in seconds for white
         self.black_time = time_per_player  # Time in seconds for black
         self.increment = increment         # Increment in seconds
         self.white_turn = True             # True if it's white's turn
         self.running = False               # To control whether the clock is running
+        self.call_back = call_back
 
     async def tick(self):
         """This function is called on every tick (e.g., every 1s)."""
@@ -19,12 +20,14 @@ class ChessClock:
                 print(f"White time: {round(self.white_time, 1)}")
                 if self.white_time <= 0:
                     # print("White time out!")
+                    self.call_back('white')
                     self.running = False
             else:
                 self.black_time -= 1
                 # print(f"Black time: {round(self.black_time, 1)}")
                 if self.black_time <= 0:
                     # print("Black time out!")
+                    self.call_back('black')
                     self.running = False
 
     async def switch_turn(self):

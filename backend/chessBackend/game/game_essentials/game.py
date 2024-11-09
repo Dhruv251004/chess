@@ -30,8 +30,12 @@ class Game():
         # 10 minute game with 2 seconds increment
         self.clock = ChessClock(600, 2)
 
+        self.game_ends = False
+        self.winner = None
+
     def stop_game(self):
         """Stop the game and clock when the game ends."""
+        self.game_ends = True
         self.clock.stop()
 
     async def start_clock(self):
@@ -69,8 +73,8 @@ class Game():
             # Check for checkmate
             if self.is_checkmate(move):
                 self.stop_game()
+                self.winner = move.player
                 move.game_ends = move.is_checkmate = True
-
             # Check for stalemate -- opponent king not on check but has no valid moe to make
             if self.is_stalemate(move):
                 self.stop_game()
@@ -95,6 +99,16 @@ class Game():
         else:
             move.is_valid = False
             print('Invalid move')
+
+    def times_up(self, piece):
+        if piece == 'white':
+            # Times up for white
+            self.winner = self.black
+        else:
+            # Times up for black
+            self.winner = self.white
+
+        self.stop_game()
 
     def is_insufficient_material(self):
         white_pieces = {}
@@ -1016,31 +1030,31 @@ class Game():
         return castle
 
 
-game = Game('U1', 'U2')
+# game = Game('U1', 'U2')
 
 
-moves = [
-    Move('U1', 'e2', 'e4'),
-    Move('U2', 'e7', 'e5'),
-    Move('U1', 'd2', 'd4'),
-    Move('U2', 'd8', 'h4'),
-    Move('U1', 'e1', 'd2'),
-    Move('U2', 'f8', 'b4'),
-    Move('U1', 'd2', 'd3'),
-    Move('U2', 'h4', 'g3'),
-    Move('U1', 'd3', 'e4'),
-    Move('U2', 'g8', 'f6'),
-    Move('U1', 'e4', 'f5'),
-    Move('U2', 'f6', 'f4'),
-    Move('U1', 'f5', 'f6'),
-    Move('U2', 'b4', 'b5'),
-    Move('U1', 'f6', 'g6'),
-    Move('U2', 'b5', 'b6'),
-    Move('U1', 'g6', 'g7'),
-    Move('U2', 'b6', 'b7'),
-    Move('U1', 'g7', 'g8'),
-    Move('U2', 'b7', 'b8')
-]
+# moves = [
+#     Move('U1', 'e2', 'e4'),
+#     Move('U2', 'e7', 'e5'),
+#     Move('U1', 'd2', 'd4'),
+#     Move('U2', 'd8', 'h4'),
+#     Move('U1', 'e1', 'd2'),
+#     Move('U2', 'f8', 'b4'),
+#     Move('U1', 'd2', 'd3'),
+#     Move('U2', 'h4', 'g3'),
+#     Move('U1', 'd3', 'e4'),
+#     Move('U2', 'g8', 'f6'),
+#     Move('U1', 'e4', 'f5'),
+#     Move('U2', 'f6', 'f4'),
+#     Move('U1', 'f5', 'f6'),
+#     Move('U2', 'b4', 'b5'),
+#     Move('U1', 'f6', 'g6'),
+#     Move('U2', 'b5', 'b6'),
+#     Move('U1', 'g6', 'g7'),
+#     Move('U2', 'b6', 'b7'),
+#     Move('U1', 'g7', 'g8'),
+#     Move('U2', 'b7', 'b8')
+# ]
 
 # moves = [Move('U1', 'f2', 'f4'), Move('U2', 'e7', 'e5'), Move(
 #     'U1', 'd2', 'd4'), Move('U2', 'd8', 'h4'), Move('U1', 'e1', 'd2'), Move('U2', 'f8', 'b4'), Move('U1', 'd2', 'd3'), Move('U2', 'h4', 'g3'), Move('U1', 'd3', 'e4'), Move('U2', 'g8', 'f6'), Move('U1', 'e4', 'f5')]

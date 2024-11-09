@@ -1,26 +1,24 @@
 import React, { useEffect, useRef, useState } from 'react'
 import ChessSquare from './ChessSquare';
 import initialBoard from '../utils/chessBoard';
+import { useSelector } from 'react-redux';
 
 const ChessBoard = () => {
-    const usernameRef=useRef(null);
-    const [username,setUsername]=useState('');
+    const accessToken=useSelector(state=>state.user.accessToken)
+    const username=useSelector(state=>state.user.username)
     const [chessBoard,setChessBoard]=useState(initialBoard);
-    
     const [from,setFrom]=useState('');
     const [socket,setSocket]=useState('');
 
     // const socketRef = useRef(null);
 
     useEffect(()=>{
-        if (username!=''){
-            const newSocket=new WebSocket(`ws://127.0.0.1:8000/ws/chess/${username}/`)
+            const newSocket=new WebSocket(`ws://127.0.0.1:8000/ws/chess/${accessToken}`)
             setSocket(newSocket)
             newSocket.onopen=(e)=>{
             console.log("Connected to web socket")
-        }
 
-        newSocket.onmessage=(e)=>{
+            newSocket.onmessage=(e)=>{
             const data=JSON.parse((e.data))
             console.log(data)
             if(data.event.message=='INVALID'){
@@ -105,15 +103,8 @@ const ChessBoard = () => {
 
   return (
     <div>
-        <div>
-            <input ref={usernameRef} placeholder='Enter your username' type="text" className='bg-black text-white'/>
-            <button onClick={()=>{
-                setUsername(usernameRef.current.value)
-            }}>
-                Play
-            </button>
-        </div>
-    <div className='border border-red-950 grid grid-rows-8 grid-cols-8 w-96 h-96 bg-white-400'>
+    <div className='rounded-lg overflow-hidden shadow-2xl grid grid-rows-8 grid-cols-8 w-fit h-fit bg-white-400'>
+    {/* <svg className=' absolute max-w-full max-h-full  fill-current z-10' viewBox='0 0 167 167'><text x="0.75" y="3.5" fontSize="2.8" className="text-amber-50">8</text><text x="0.75" y="15.75" fontSize="2.8" className="text-amber-50">7</text><text x="0.75" y="28.25" fontSize="2.8" className="text-amber-50">6</text><text x="0.75" y="40.75" fontSize="2.8" className="text-amber-50">5</text><text x="0.75" y="53.25" fontSize="2.8" className="text-amber-50">4</text><text x="0.75" y="65.75" fontSize="2.8" className="text-amber-50">3</text><text x="0.75" y="78.25" fontSize="2.8" className="text-amber-50">2</text><text x="0.75" y="90.75" fontSize="2.8" className="text-amber-50">1</text><text x="10" y="99" fontSize="2.8" className="text-amber-50">a</text><text x="22.5" y="99" fontSize="2.8" className="text-amber-50">b</text><text x="35" y="99" fontSize="2.8" className="text-amber-50">c</text><text x="47.5" y="99" fontSize="2.8" className="text-amber-50">d</text><text x="60" y="99" fontSize="2.8" className="text-amber-50">e</text><text x="72.5" y="99" fontSize="2.8" className="text-amber-50">f</text><text x="85" y="99" fontSize="2.8" className="text-amber-50">g</text><text x="97.5" y="99" fontSize="2.8" className="text-amber-50">h</text></svg> */}
 
         {
             rank.map((r)=>{
