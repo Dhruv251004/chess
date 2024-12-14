@@ -17,17 +17,17 @@ class ChessClock:
             await asyncio.sleep(1)  # Tick interval of 1s
             if self.white_turn:
                 self.white_time -= 1
-                print(f"White time: {round(self.white_time, 1)}")
+                # print(f"White time: {round(self.white_time, 1)}")
                 if self.white_time <= 0:
                     # print("White time out!")
-                    self.call_back('white')
+                    # self.call_back('white')
                     self.running = False
             else:
                 self.black_time -= 1
                 # print(f"Black time: {round(self.black_time, 1)}")
                 if self.black_time <= 0:
                     # print("Black time out!")
-                    self.call_back('black')
+                    # self.call_back('black')
                     self.running = False
 
     async def switch_turn(self):

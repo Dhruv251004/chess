@@ -98,7 +98,7 @@ class Game():
             self.moves.append(move)
         else:
             move.is_valid = False
-            print('Invalid move')
+            # print('Invalid move')
 
     def times_up(self, piece):
         if piece == 'white':
@@ -125,8 +125,8 @@ class Game():
                         black_pieces[self.board[i][j]] = []
                     black_pieces[self.board[i][j]].append([i, j])
 
-        print("white pcs", white_pieces)
-        print("black pcs", black_pieces)
+        # print("white pcs", white_pieces)
+        # print("black pcs", black_pieces)
 
         # Possible draws
         # K vs K
@@ -135,22 +135,22 @@ class Game():
         # K + B vs K + B ( same color bishops )
 
         if self.is_k_vs_k(white_pieces, black_pieces):
-            print("kk match")
+            # print("kk match")
             return True
 
         elif self.is_k_vs_kb(white_pieces, black_pieces, 'B') or self.is_k_vs_kb(black_pieces, white_pieces, 'W'):
-            print("kb match")
+            # print("kb match")
             return True
 
         elif self.is_k_vs_kn(white_pieces, black_pieces, 'B') or self.is_k_vs_kn(black_pieces, white_pieces, 'W'):
-            print("kn match")
+            # print("kn match")
             return True
 
         elif self.is_kb_vs_kb(white_pieces, black_pieces):
-            print("kbkb match")
+            # print("kbkb match")
             return True
 
-        print("No insufficient material draw")
+        # print("No insufficient material draw")
         return False
 
     def is_kb_vs_kb(self, white_pieces, black_pieces):
@@ -297,7 +297,7 @@ class Game():
                 castle = self.is_castle(
                     x_prev, y_prev, x_curr, y_curr, piece_color)
                 is_valid = is_valid or castle
-                print("valid king move ", is_valid)
+                # print("valid king move ", is_valid)
 
             elif piece == 'Q':
                 # It is a Queen
@@ -324,7 +324,7 @@ class Game():
 
             # Now check if king is on check after the following move or not
             if not is_valid or self.is_king_on_check(x_prev, y_prev, x_curr, y_curr, piece_color):
-                print("ha bhai check pr h")
+                # print("ha bhai check pr h")
                 return False
 
             # It is a valid move
@@ -384,7 +384,7 @@ class Game():
             #         x_curr, y_curr, piece, piece_color, move.promote_to)
             return True
         except Exception as e:
-            print(e)
+            # print(e)
             return False
 
     def update_board(self, move):
@@ -782,10 +782,10 @@ class Game():
 
         [x, y] = self.get_king_position(board_copy, king)
 
-        print("king is at ", king, x, y)
+        # print("king is at ", king, x, y)
         res = self.is_square_on_attack(
             x, y, piece_color, opponent_piece_color, board_copy)
-        print(res)
+        # print(res)
         return res
 
     def is_square_on_attack(self, x, y, piece_color, opponent_piece_color, board=None):
@@ -836,7 +836,7 @@ class Game():
             or self.check_for_knight_attack(
             board, x, y, opponent_piece_color))
 
-        print("after ", on_attack)
+        # print("after ", on_attack)
 
         # Now check if opponent king is on adjacent square to this square
         [opponent_king_x, opponent_king_y] = self.get_king_position(
@@ -851,7 +851,7 @@ class Game():
                 on_attack = True
             elif not Move.is_invalid_coordinates(x+1, y+1) and board[x+1][y+1] == opponent_piece_color+'P':
                 on_attack = True
-            print("pawn att")
+            # print("pawn att")
         else:
             if not Move.is_invalid_coordinates(x-1, y-1) and board[x-1][y-1] == opponent_piece_color+'P':
                 on_attack = True
@@ -861,8 +861,8 @@ class Game():
         return on_attack
 
     def check_on_diagonal(self, board, x, y, del_x, del_y, opponent):
-        print(del_x)
-        print(del_y)
+        # print(del_x)
+        # print(del_y)
         nx = x+del_x
         ny = y+del_y
 
@@ -878,7 +878,7 @@ class Game():
                     break
             nx += del_x
             ny += del_y
-        print("diagonal chk", on_check)
+        # print("diagonal chk", on_check)
         return on_check
 
     def check_for_knight_attack(self, board, x, y, opponent):
@@ -909,7 +909,7 @@ class Game():
                     if board[i][y][1] == 'R' or board[i][y][1] == 'Q':
                         result = True
                     break
-        print("fchk", result)
+        # print("fchk", result)
         return result
 
     def check_on_rank(self, board, x, y, start, end, increment, opponent):
@@ -1072,10 +1072,10 @@ class Game():
 # for i in range(8, 0, -1):
 #     for j in range(1, 9):
 #         if game.board[i][j] == '':
-#             print('  ', end='  ')
+#             # print('  ', end='  ')
 #         else:
-#             print(game.board[i][j], end='  ')
-#     print()
+#             # print(game.board[i][j], end='  ')
+#     # print()
 
 
-# print(game.board)
+# # print(game.board)
