@@ -1,6 +1,8 @@
 from rest_framework import serializers
+from django.contrib.auth.models import User
+
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
-        model = 'django.contrib.auth.models.User'  # Reference by string
+        model = User  # Reference by string
         fields = ['first_name', 'last_name', 'email', 'username']

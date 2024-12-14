@@ -53,7 +53,6 @@ def registerUser(request):
         email = request.data.get('email')
         username = request.data.get('username')
         password = request.data.get('password')
-
         user = User.objects.create_user(
             username=username,
             password=password,
@@ -61,9 +60,8 @@ def registerUser(request):
             last_name=last_name,
             email=email,
         )
-
+        print(type(user))
         data = UserSerializer(user).data
-
         tokens = get_tokens_for_user(user)
         data['refresh'] = tokens['refresh']
         data['access'] = tokens['access']
@@ -71,7 +69,8 @@ def registerUser(request):
         return APIResponse.success(message='Registered Successfully', data=data)
     except IntegrityError:
         return APIResponse.error(errors="User with this username or email already exists")
-    except Exception:
+    except Exception as e:
+        print(e)
         return APIResponse.error(errors="Some error occured")
 
 
