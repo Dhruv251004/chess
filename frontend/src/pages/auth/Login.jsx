@@ -24,8 +24,10 @@ const Login = () => {
     // handlers
     const loginUser=async(e)=>{
         e.preventDefault();
+        const baseUrl=import.meta.env.VITE_API_URL;
+        console.log(baseUrl)
         setWaiting(true)
-        const response=await fetch(`http://localhost:8000/user/login/`,{
+        const response=await fetch(`${baseUrl}/user/login/`,{
             method:'POST',
             headers:{
                 'content-type':'application/json'

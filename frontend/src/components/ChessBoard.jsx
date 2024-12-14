@@ -24,8 +24,9 @@ const ChessBoard = ({waiting,setWaiting}) => {
 
     useEffect(()=>{
         if(username && accessToken){
-            console.log("Access token is ",accessToken)
-            const newSocket=new WebSocket(`ws://127.0.0.1:8000/ws/chess/?token=${accessToken}`)
+            console.log("Access token is ",accessToken);
+            const baseUrl=import.meta.env.VITE_WEBSOCKET_URL;
+            const newSocket=new WebSocket(`${baseUrl}/chess/?token=${accessToken}`)
             setSocket(newSocket)
             const closeSocketHandler=newSocket.onopen=(e)=>{
             newSocket.onmessage=(e)=>{

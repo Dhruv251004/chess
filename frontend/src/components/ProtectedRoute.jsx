@@ -20,8 +20,8 @@ const ProtectedRoute = ({children}) => {
         const fecthUserDetails=async()=>{
 
             if (isAuthenticated) return;
-
-            const response=await fetch(`http://localhost:8000/user/details`,{
+            const baseUrl=import.meta.env.VITE_API_URL;
+            const response=await fetch(`${baseUrl}/user/details`,{
                 method:'GET',
                 headers:{
                     Authorization:`Bearer ${accessToken}`

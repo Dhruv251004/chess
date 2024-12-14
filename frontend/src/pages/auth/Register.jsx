@@ -26,8 +26,8 @@ const Register = () => {
         e.preventDefault();
 
         setWaiting(true);
-
-        const response=await fetch(`http://localhost:8000/user/register/`,{
+        const baseUrl=import.meta.env.VITE_API_URL;
+        const response=await fetch(`${baseUrl}/user/register/`,{
             method:'POST',
             headers:{
                 'content-type':'application/json'
