@@ -15,10 +15,16 @@ import blackBishop from '../assets/bb.png';
 import blackPawn from '../assets/bp.png';
 import darkSquare from '../assets/dark_sq.png'
 import lightSquare from '../assets/light_sq.png'
+import ChessPiece from './ChessPiece';
 
-const ChessSquare = ({ color, square }) => {
+const ChessSquare = ({ color, square,selectedFrom }) => {
   const [piece, setPiece] = useState("");
-  
+  const [isFirstRender, setIsFirstRender] = useState(true);
+
+  // This effect runs only once after the first render
+  useEffect(() => {
+    setIsFirstRender(false); // Set the flag to false after the first render
+  }, []);
   useEffect(() => {
     let selectedPiece = "";
     if (square.pieceColor === 'white') {
@@ -72,19 +78,28 @@ const ChessSquare = ({ color, square }) => {
     setPiece(selectedPiece);
   }, [square]);
 
-  const bg=color==='light'?darkSquare:lightSquare;
+  // useEffect(()=>{
+  //   if(selectedFrom){
+  //     setBg('')
+  //   }
+  //   else setBg(color==='light'?darkSquare:lightSquare)
+  // },[selectedFrom])
+
+const bg=color==='light'?darkSquare:lightSquare;
+  // const [bg,setBg]=useState(color==='light'?darkSquare:lightSquare)
 
   return (
     <div
       style={{ background: `url(${bg}) no-repeat center center/cover`}}
-      className={`w-20 h-20`}>
-      <div
-      className={`w-20 h-20`}
+      className={`w-20 h-20 `}>
+      <div className={`w-20 h-20`}
         style={{
-          background: piece ? `url(${piece}) no-repeat center center/cover` : "none",
-          zIndex: 2,
+          backgroundColor:`${selectedFrom?'#dda13487':''}`
         }}
       >
+      {
+         <ChessPiece piece={piece}  top={square.top} left={square.left}/>
+      }
       </div>
     </div>
   );

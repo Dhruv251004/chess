@@ -18,7 +18,9 @@ function App() {
               <Home/>
             </ProtectedRoute>}/>
             <Route path="/profile" element={<Login/>}/>
-            <Route path="/play" element={<Play/>}/>
+            <Route path="/play" element={<ProtectedRoute>
+              <Play/>
+            </ProtectedRoute>}/>
         </Route>
       </Routes>
     </BrowserRouter>
