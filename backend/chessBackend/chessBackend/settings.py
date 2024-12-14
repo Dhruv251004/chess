@@ -25,7 +25,12 @@ SECRET_KEY = 'django-insecure-om&tv8=$g8mijh+sd^txeshhqu6$r+=y7kh_s@1$qz&dv0d+)k
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    'localhost',
+    '127.0.0.1',
+    'chessify-v3aa.onrender.com',
+    # Add any other hostnames or IPs here if needed
+]
 
 
 # Application definition
@@ -97,7 +102,6 @@ ASGI_APPLICATION = 'chessBackend.asgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
-
 
 
 # Password validation
