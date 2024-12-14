@@ -1,18 +1,18 @@
 import os
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'chessBackend.settings')
 import django
 from django.core.asgi import get_asgi_application
+# Get the ASGI application
+django_asgi_app = get_asgi_application()
 from channels.routing import ProtocolTypeRouter, URLRouter
 from channels.auth import AuthMiddlewareStack
 from game import routing
 from game.middleware import JWTAuthMiddleware
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'chessBackend.settings')
 
 # Make sure Django is properly set up
 django.setup()
 
-# Get the ASGI application
-django_asgi_app = get_asgi_application()
 
 # Get the port dynamically from the environment variable
 port = os.environ.get("PORT", 8000)  # Default to 8000 for local development
