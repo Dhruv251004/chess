@@ -66,7 +66,7 @@ MIDDLEWARE = [
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
-    "https://chessify-kdud094xh-dhruvs-projects-1d541a21.vercel.app"
+    "https://chessify-goh2o7ut4-dhruvs-projects-1d541a21.vercel.app"
 ]
 
 
