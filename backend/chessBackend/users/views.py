@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from django.contrib.auth.models import User
+from users.models import User
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from .serializers import UserSerializer
@@ -9,6 +9,7 @@ from django.contrib.auth import authenticate
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.views.decorators.csrf import csrf_exempt
 from django.db import IntegrityError
+from .utils.cloudinary import upload_image_to_cloudinary
 # Create your views here.
 
 
@@ -100,4 +101,18 @@ def getUserDetails(request):
         serializer = UserSerializer(user)  # Serialize the user data
         return APIResponse.success(message="User details fetched successfully", data=serializer.data)
     except:
-        return APIResponse.error(errors='Some error occured')
+        return APIResponse.error(errors='Some error occurred')
+
+
+@api_view(['POST'])
+def changeProfilePic(request):
+    try:
+        print('hi')
+        user = request.user
+        user.profile_pic = upload_image_to_cloudinary(
+            request.FILES['file'], user.username)
+        print(user.profile_pic)
+        user.save()
+        return APIResponse.success(message='Changed profile picture successfully',data=user.profile_pic)
+    except:
+        return APIResponse.error(errors='Some error occurred. Try again later')

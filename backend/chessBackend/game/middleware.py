@@ -2,8 +2,6 @@ from channels.middleware import BaseMiddleware
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework_simplejwt.exceptions import TokenError
 from channels.db import database_sync_to_async
-from django.contrib.auth.models import AnonymousUser
-from channels.exceptions import DenyConnection
 
 
 class JWTAuthMiddleware(BaseMiddleware):
@@ -26,7 +24,6 @@ class JWTAuthMiddleware(BaseMiddleware):
 
     def get_token_from_scope(self, scope):
         query_string = scope.get('query_string', b'').decode()
-        # print(f"Query string: {query_string}")  # Debugging line
         if not query_string:
             return None
 
@@ -37,5 +34,4 @@ class JWTAuthMiddleware(BaseMiddleware):
                 params[key] = value
 
         token = params.get('token', None)
-        # print(f"Token retrieved: {token}")  # Debugging line
         return token

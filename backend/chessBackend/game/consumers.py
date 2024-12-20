@@ -20,6 +20,12 @@ class GameConsumer(AsyncWebsocketConsumer):
     players = {}
     piece_assignment = {}  # Mapping users to their piece color
 
+    def assign_piece(self):
+        # White or black
+        piece_colors = random.sample(GameConsumer.piece, 2)
+        GameConsumer.piece_assignment[GameConsumer.waiting_user.username] = piece_colors[0]
+        GameConsumer.piece_assignment[self.user.username] = piece_colors[1]
+
     async def connect(self):
         self.user = self.scope['user']
 
@@ -33,35 +39,37 @@ class GameConsumer(AsyncWebsocketConsumer):
         else:
             if GameConsumer.waiting_room is not None:
                 # A user is waiting for a match
-                # Assign random pieces to both players
 
-                piece_colors = random.sample(GameConsumer.piece, 2)
-                GameConsumer.piece_assignment[GameConsumer.waiting_user.username] = piece_colors[0]
-                GameConsumer.piece_assignment[self.user.username] = piece_colors[1]
+                # Assign random pieces to both players
+                self.assign_piece()
+
                 # Create a game object
+                self.game_room_name = GameConsumer.waiting_room
                 if GameConsumer.piece_assignment[GameConsumer.waiting_user.username] == 'white':
-                    GameConsumer.games[GameConsumer.waiting_room] = Game(
+                    GameConsumer.games[self.game_room_name] = Game(
                         self.waiting_user, self.user)
                 else:
-                    GameConsumer.games[GameConsumer.waiting_room] = Game(
+                    GameConsumer.games[self.game_room_name] = Game(
                         self.user, self.waiting_user)
 
-                self.game_room_name = GameConsumer.waiting_room
                 await self.channel_layer.group_add(
-                    GameConsumer.waiting_room, self.channel_name
+                    self.game_room_name, self.channel_name
                 )
 
                 # Start game
-                # await GameConsumer.games[GameConsumer.waiting_room].start_clock()
+
+                # Start clock
                 asyncio.create_task(
-                    GameConsumer.games[GameConsumer.waiting_room].start_clock())
+                    GameConsumer.games[self.game_room_name].start_clock())
+
                 await self.channel_layer.group_send(
                     self.game_room_name, {
-                        'type': 'game.room', 'event': {'message': 'START',
-                                                       self.user.username: GameConsumer.piece_assignment[self.user.username],
-                                                       GameConsumer.waiting_user.username: GameConsumer.piece_assignment[
-                                                           GameConsumer.waiting_user.username]
-                                                       }}
+                        'type': 'game.room',
+                        'event': {'message': 'START',
+                                  self.user.username: GameConsumer.piece_assignment[self.user.username],
+                                  GameConsumer.waiting_user.username: GameConsumer.piece_assignment[
+                                      GameConsumer.waiting_user.username]
+                                  }}
                 )
 
                 GameConsumer.waiting_user = None
@@ -69,11 +77,13 @@ class GameConsumer(AsyncWebsocketConsumer):
             else:
                 # new user started game
                 GameConsumer.waiting_user = self.user
+
+                # Generate game room so that opponent can join
                 GameConsumer.waiting_room = generateRoomName(self.user)
                 self.game_room_name = GameConsumer.waiting_room
 
                 await self.channel_layer.group_add(
-                    GameConsumer.waiting_room, self.channel_name
+                    self.game_room_name, self.channel_name
                 )
 
         await self.accept()
@@ -122,11 +132,9 @@ class GameConsumer(AsyncWebsocketConsumer):
                 self.game_room_name, {"type": "game.room", "event": response}
             )
 
-        if game.game_ends:
-            print("hiiiiiiii")
-            await self.close()
-
     async def game_room(self, event):
         game_event = event["event"]
         # Send message to WebSocket
         await self.send(text_data=json.dumps({"event": game_event}))
+        if 'ends' in game_event and game_event['ends']:
+            await self.close()

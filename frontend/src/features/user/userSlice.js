@@ -19,6 +19,7 @@ export const userSlice = createSlice({
 				(state.lastName = action.payload.lastName),
 				(state.username = action.payload.username),
 				(state.email = action.payload.email);
+			state.profilePic = action.payload.profilePic;
 
 			if (action.payload.accessToken) {
 				(state.accessToken = action.payload.accessToken),
@@ -31,9 +32,13 @@ export const userSlice = createSlice({
 
 			state.isAuthenticated = true;
 		},
+
+		setProfileURL: (state, action) => {
+			state.profilePic = action.payload;
+		},
 	},
 });
 
-export const { login } = userSlice.actions;
+export const { login, setProfileURL } = userSlice.actions;
 
 export default userSlice.reducer;
