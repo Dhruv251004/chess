@@ -36,7 +36,7 @@ ALLOWED_HOSTS = [
     'localhost',
     '127.0.0.1',
     'chessify-v3aa.onrender.com',
-    'chessify-red.vercel.app'
+    '*'
     # Add any other hostnames or IPs here if needed
 ]
 
