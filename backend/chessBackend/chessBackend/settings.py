@@ -36,8 +36,7 @@ ALLOWED_HOSTS = [
     'localhost',
     '127.0.0.1',
     'chessify-v3aa.onrender.com',
-    '*'
-    # Add any other hostnames or IPs here if needed
+    'chessify-red.vercel.app',  # Add the frontend domain here
 ]
 
 
@@ -72,10 +71,9 @@ MIDDLEWARE = [
 ]
 
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:5173",
-    "*"
+    "https://chessify-red.vercel.app",  # Allow your Vercel frontend URL
+    "http://localhost:5173",  # Allow your local development server
 ]
-
 
 REST_FRAMEWORK = {
     # Use Django's standard `django.contrib.auth` permissions,
