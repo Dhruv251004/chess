@@ -35,7 +35,8 @@ DEBUG = True
 ALLOWED_HOSTS = [
     'localhost',
     '127.0.0.1',
-    'chessify-red.vercel.app',
+    'https://chessify-red.vercel.app',
+    'chessify-red.vercel.app'
     # Add any other hostnames or IPs here if needed
 ]
 
