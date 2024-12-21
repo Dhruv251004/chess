@@ -15,7 +15,7 @@ const WaitingScreen = ({ setWaiting, closeSocket }) => {
 
 	return (
 		<div
-			className=' h-full w-full flex justify-center items-center'
+			className=' h-screen w-screen flex justify-center items-center'
 			style={{
 				background: `url(${homeBg}) no-repeat center center/cover`,
 			}}>

@@ -3,6 +3,7 @@ import ChessBoard from '../../components/ChessBoard.jsx';
 import UserItem from './UserItem.jsx';
 import { useSelector } from 'react-redux';
 import { useState } from 'react';
+import WaitingScreen from './WaitingScreen.jsx';
 
 const Play = () => {
 	const [waiting, setWaiting] = useState(true);
@@ -31,7 +32,6 @@ const Play = () => {
 			style={{
 				background: `url(${homeBg}) no-repeat center center/cover`,
 			}}>
-			{/* <div className='flex items-center justify-center h-screen w-[100%]'> */}
 			<div className='flex w-fit h-fit gap-4 '>
 				<div className='md:flex justify-center items-center h-fit w-fit'>
 					<ChessBoard
@@ -41,47 +41,27 @@ const Play = () => {
 					/>
 				</div>
 
-				<div className='hidden lg:flex w-fit flex-col justify-between  '>
-					<div className='md:flex justify-center items-center h-fit min-w-52'>
-						<UserItem
-							firstName={opponentFirstName}
-							lastName={opponentLastName}
-							profilePic={opponentProfilePic}
-							username={opponentUsername}
-						/>
+				{!waiting && (
+					<div className='hidden lg:flex w-fit flex-col justify-between  '>
+						<div className='md:flex justify-center items-center h-fit min-w-52'>
+							<UserItem
+								firstName={opponentFirstName}
+								lastName={opponentLastName}
+								profilePic={opponentProfilePic}
+								username={opponentUsername}
+							/>
+						</div>
+						<div className='md:flex justify-center items-center h-fit min-w-52'>
+							<UserItem
+								firstName={firstName}
+								lastName={lastName}
+								username={username}
+								profilePic={profilePic}
+							/>
+						</div>
 					</div>
-					<div className='md:flex justify-center items-center h-fit min-w-52'>
-						<UserItem
-							firstName={firstName}
-							lastName={lastName}
-							username={username}
-							profilePic={profilePic}
-						/>
-					</div>
-				</div>
+				)}
 			</div>
-			{/* {!waiting && (
-						<div className='hidden text-white text-5xl lg:flex flex-col h-full pt-8 pb-8 m-8'> */}
-			{/* <div className='mb-auto rounded-full'>
-								<UserItem
-									firstName={opponentFirstName}
-									lastName={opponentLastName}
-									profilePic={opponentProfilePic}
-									username={opponentUsername}
-								/>
-							</div>
-							<div className='items-end '>
-								<UserItem
-									firstName={firstName}
-									lastName={lastName}
-									username={username}
-									profilePic={profilePic}
-								/>
-							</div> */}
-			{/* </div> */}
-			{/* )} */}
-			{/* </div> */}
-			{/* </div> */}
 		</div>
 	);
 };
