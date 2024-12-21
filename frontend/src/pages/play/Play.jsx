@@ -33,12 +33,30 @@ const Play = () => {
 				background: `url(${homeBg}) no-repeat center center/cover`,
 			}}>
 			<div className='flex w-fit h-fit gap-4 '>
-				<div className='md:flex justify-center items-center h-fit w-fit'>
-					<ChessBoard
-						waiting={waiting}
-						setWaiting={setWaiting}
-						setOpponentInfo={setOpponentInfo}
-					/>
+				<div className='md:flex justify-center items-center h-fit w-fit flex-col'>
+					<div className='lg:hidden w-full block'>
+						<UserItem
+							firstName={opponentFirstName}
+							lastName={opponentLastName}
+							profilePic={opponentProfilePic}
+							username={opponentUsername}
+						/>
+					</div>
+					<div>
+						<ChessBoard
+							waiting={waiting}
+							setWaiting={setWaiting}
+							setOpponentInfo={setOpponentInfo}
+						/>
+					</div>
+					<div className='w-full lg:hidden block'>
+						<UserItem
+							firstName={firstName}
+							lastName={lastName}
+							username={username}
+							profilePic={profilePic}
+						/>
+					</div>
 				</div>
 
 				{!waiting && (

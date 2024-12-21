@@ -186,7 +186,7 @@ const ChessBoard = ({ waiting, setWaiting, setOpponentInfo }) => {
 						let square = chessBoard[key];
 						return (
 							<div
-								className='w-10 h-10 md:h-16 md:w-16 lg:w-20 lg:h-20'
+								className='w-14 h-14 md:h-16 md:w-16 lg:w-20 lg:h-20'
 								key={key}
 								onClick={() => selectSquare(key)}>
 								<ChessSquare
