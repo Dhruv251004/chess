@@ -34,14 +34,16 @@ const Play = () => {
 			}}>
 			<div className='flex w-fit h-fit gap-4 '>
 				<div className='md:flex justify-center items-center h-fit w-fit flex-col'>
-					<div className='lg:hidden w-full block'>
-						<UserItem
-							firstName={opponentFirstName}
-							lastName={opponentLastName}
-							profilePic={opponentProfilePic}
-							username={opponentUsername}
-						/>
-					</div>
+					{!waiting && (
+						<div className='lg:hidden w-full block'>
+							<UserItem
+								firstName={opponentFirstName}
+								lastName={opponentLastName}
+								profilePic={opponentProfilePic}
+								username={opponentUsername}
+							/>
+						</div>
+					)}
 					<div>
 						<ChessBoard
 							waiting={waiting}
@@ -49,14 +51,16 @@ const Play = () => {
 							setOpponentInfo={setOpponentInfo}
 						/>
 					</div>
-					<div className='w-full lg:hidden block'>
-						<UserItem
-							firstName={firstName}
-							lastName={lastName}
-							username={username}
-							profilePic={profilePic}
-						/>
-					</div>
+					{!waiting && (
+						<div className='w-full lg:hidden block'>
+							<UserItem
+								firstName={firstName}
+								lastName={lastName}
+								username={username}
+								profilePic={profilePic}
+							/>
+						</div>
+					)}
 				</div>
 
 				{!waiting && (
