@@ -4,6 +4,7 @@ from channels.generic.websocket import AsyncWebsocketConsumer
 from .game_essentials.game import Game
 from .game_essentials.move import Move
 from users.serializers import UserSerializer
+from users.models import User
 import asyncio
 
 
@@ -62,14 +63,24 @@ class GameConsumer(AsyncWebsocketConsumer):
                 asyncio.create_task(
                     GameConsumer.games[self.game_room_name].start_clock())
 
+                # await self.channel_layer.group_send(
+                #     self.game_room_name, {
+                #         'type': 'game.room',
+                #         'event': {'message': 'START',
+                #                   self.user.username: GameConsumer.piece_assignment[self.user.username],
+                #                   GameConsumer.waiting_user.username: GameConsumer.piece_assignment[
+                #                       GameConsumer.waiting_user.username],
+                #                   }
+                #     }
+                # )
                 await self.channel_layer.group_send(
                     self.game_room_name, {
                         'type': 'game.room',
                         'event': {'message': 'START',
-                                  self.user.username: GameConsumer.piece_assignment[self.user.username],
-                                  GameConsumer.waiting_user.username: GameConsumer.piece_assignment[
-                                      GameConsumer.waiting_user.username]
-                                  }}
+                                  GameConsumer.piece_assignment[self.user.username]: UserSerializer(self.user).data,
+                                  GameConsumer.piece_assignment[GameConsumer.waiting_user.username]: UserSerializer(GameConsumer.waiting_user).data,
+                                  }
+                    }
                 )
 
                 GameConsumer.waiting_user = None

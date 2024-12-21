@@ -15,7 +15,7 @@ import gameEndSound from '../assets/sounds/game-start.mp3';
 import WaitingScreen from '../pages/play/WaitingScreen';
 import GameResult from './GameResult';
 
-const ChessBoard = ({ waiting, setWaiting }) => {
+const ChessBoard = ({ waiting, setWaiting, setOpponentInfo }) => {
 	const accessToken = useSelector((state) => state.user.accessToken);
 	const username = useSelector((state) => state.user.username);
 	const [chessBoard, setChessBoard] = useState(initialBoard);
@@ -56,10 +56,15 @@ const ChessBoard = ({ waiting, setWaiting }) => {
 					}
 					if (data.event.message === 'START') {
 						setWaiting(false);
-						console.log(username);
-						console.log('hi');
-						console.log(data.event[username]);
-						setPieceColor(data.event[username]);
+
+						if (data.event.white.username === username) {
+							setPieceColor('white');
+							setOpponentInfo(data.event.black);
+						} else {
+							setPieceColor('black');
+							setOpponentInfo(data.event.white);
+						}
+
 						playGameStartSound();
 					}
 					if (data.event.message != 'START') {
@@ -181,7 +186,7 @@ const ChessBoard = ({ waiting, setWaiting }) => {
 						let square = chessBoard[key];
 						return (
 							<div
-								className='w-20 h-20'
+								className='w-10 h-10 md:h-16 md:w-16 lg:w-20 lg:h-20'
 								key={key}
 								onClick={() => selectSquare(key)}>
 								<ChessSquare
