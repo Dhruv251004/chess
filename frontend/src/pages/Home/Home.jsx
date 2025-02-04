@@ -16,6 +16,7 @@ const Home = () => {
 	const dispatch = useDispatch();
 
 	const handleLogout = () => {
+		console.log(avatar);
 		// setIsLoggedIn(false); // Mock logout function
 	};
 

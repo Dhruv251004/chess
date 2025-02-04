@@ -51,6 +51,7 @@ const Register = () => {
 					email: data.email,
 					accessToken: data.access,
 					refreshToken: data.refresh,
+					profilePic: data.profile_pic,
 				})
 			);
 

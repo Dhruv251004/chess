@@ -15,7 +15,7 @@ import gameEndSound from '../assets/sounds/game-start.mp3';
 import WaitingScreen from '../pages/play/WaitingScreen';
 import GameResult from './GameResult';
 
-const ChessBoard = ({ waiting, setWaiting, setOpponentInfo }) => {
+const ChessBoard = ({ waiting, setWaiting, setOpponentInfo, addMove }) => {
 	const accessToken = useSelector((state) => state.user.accessToken);
 	const username = useSelector((state) => state.user.username);
 	const [chessBoard, setChessBoard] = useState(initialBoard);
@@ -49,7 +49,6 @@ const ChessBoard = ({ waiting, setWaiting, setOpponentInfo }) => {
 			const closeSocketHandler = (newSocket.onopen = (e) => {
 				newSocket.onmessage = (e) => {
 					const data = JSON.parse(e.data);
-					console.log(data);
 					if (data.event.message == 'INVALID') {
 						playIllegalMoveSound();
 						return;
@@ -69,6 +68,7 @@ const ChessBoard = ({ waiting, setWaiting, setOpponentInfo }) => {
 					}
 					if (data.event.message != 'START') {
 						//Do something
+						addMove(data.event.notation);
 						let prev = data.event.from;
 						let curr = data.event.to;
 						setChessBoard((prevBoard) => {
@@ -186,7 +186,7 @@ const ChessBoard = ({ waiting, setWaiting, setOpponentInfo }) => {
 						let square = chessBoard[key];
 						return (
 							<div
-								className='w-14 h-14 md:h-16 md:w-16 lg:w-20 lg:h-20'
+								className='w-[40px] h-[40px] sm:h-14 sm:w-14 md:h-16 md:w-16 lg:w-20 lg:h-20'
 								key={key}
 								onClick={() => selectSquare(key)}>
 								<ChessSquare

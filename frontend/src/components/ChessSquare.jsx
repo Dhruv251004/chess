@@ -91,8 +91,8 @@ const bg=color==='light'?darkSquare:lightSquare;
   return (
     <div
       style={{ background: `url(${bg}) no-repeat center center/cover`}}
-      className={`w-14 h-14 md:h-16 md:w-16 lg:w-20 lg:h-20 `}>
-      <div className={`w-14 h-14 md:h-16 md:w-16 lg:w-20 lg:h-20`}
+      className={`w-[40px] h-[40px] sm:h-14 sm:w-14 md:h-16 md:w-16 lg:w-20 lg:h-20 `}>
+      <div className={`w-[40px] h-[40px] sm:h-14 sm:w-14 md:h-16 md:w-16 lg:w-20 lg:h-20`}
         style={{
           backgroundColor:`${selectedFrom?'#dda13487':''}`
         }}
