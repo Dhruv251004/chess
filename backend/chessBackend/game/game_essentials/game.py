@@ -26,8 +26,8 @@ class Game():
 
         self.initialize_board()
 
-        # 10 minute game with 2 seconds increment
-        self.clock = ChessClock(600, 2)
+        # 10 minute game with 0 seconds increment
+        self.clock = ChessClock(600, 0)
 
         self.game_ends = False
         self.winner = None
@@ -66,16 +66,27 @@ class Game():
         pass
 
     def promote_pawn(self, move):
-        x, y = move.curr
-        self.board[x][y][1] = move.promote_to
+        x, y = move.get_curr_coordinates()
+        print("x and y is ", x, y)
+        self.board[x][y] = self.board[x][y][0]+move.promote_to
 
     async def make_move(self, move):
 
         if self.is_valid_move(move):
-            self.update_board(move)
+            print("befor up", move.promotion)
 
+            if not move.resign:
+                self.update_board(move)
+            print("after up", move.promotion)
+
+            move.time_left_white = self.clock.white_time
+            move.time_left_black = self.clock.black_time
             # Check pawn promotion
+
+            print("move.promotion= ", move.promotion)
+
             if move.promotion:
+                print("Promoting pawn")
                 self.promote_pawn(move)
 
             # Check for checkmate
@@ -96,14 +107,18 @@ class Game():
                 self.stop_game()
                 move.game_ends = move.is_insufficient_material = True
 
+            if move.resign:
+                self.stop_game()
+                move.game_ends = True
+                move.winner = self.white.username if move.player == self.black else self.black.username
+
             # Switch clock
             if not move.game_ends and self.clock.running:
                 await self.clock.switch_turn()
-                move.time_left_white = self.clock.white_time
-                move.time_left_black = self.clock.black_time
 
-            move.algebraic_notation = Move.move_to_algebraic_notation(
-                move, self.board)
+            if not move.resign:
+                move.algebraic_notation = Move.move_to_algebraic_notation(
+                    move, self.board)
 
             self.moves.append(move)
         else:
@@ -255,6 +270,9 @@ class Game():
     def is_valid_move(self, move, check_move_turn=True):
         try:
 
+            if move.resign:
+                return True
+            # print("Promoting to ", move.promote_to)
             if move.promote_to not in ('Q', 'B', 'R', 'N', None):
                 return False
 
@@ -350,14 +368,16 @@ class Game():
             move.is_castle = castle
             move.is_enpassant = enpassant
 
-            if self.check_pawn_promotion(x_prev, x_curr):
+            if move.is_pawn_move and self.check_pawn_promotion(x_prev, x_curr):
+                print("ha kro promote ", x_prev, x_curr)
                 move.promotion = True
-
+            print("is valid move promo", move.promotion)
             return True
         except Exception as e:
             return False
 
     def check_pawn_promotion(self, x_prev, x_curr):
+        print(x_prev, x_curr)
         if (x_prev == 7 and x_curr == 8) or (x_prev == 2 and x_curr == 1):
             return True
         return False
@@ -457,7 +477,7 @@ class Game():
             return False
 
     def handle_pawn_promotion(self, x, y, piece_color, promote_to):
-        if x != 8:
+        if x != 8 and x != 1:
             return False
 
         piece_color_short = 'W' if piece_color == 'white' else 'B'

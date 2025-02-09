@@ -1,14 +1,12 @@
-import React, { useEffect, useState } from 'react';
-import authBg from '../../assets/auth_bg.png';
-import { useNavigate } from 'react-router-dom';
-import { login } from '../../features/user/userSlice';
+import React, { useState } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { toast } from 'react-toastify';
-import { Link } from 'react-router-dom';
+import { login } from '../../features/user/userSlice';
+import { ChevronRight as ChessKnight } from 'lucide-react';
 import Spinner from '../../components/Spinner';
 
 const Register = () => {
-	// State variables
 	const [firstName, setFirstName] = useState('');
 	const [lastName, setLastName] = useState('');
 	const [username, setUsername] = useState('');
@@ -16,13 +14,11 @@ const Register = () => {
 	const [password, setPassword] = useState('');
 	const [waiting, setWaiting] = useState(false);
 
-	// utils
 	const navigate = useNavigate();
 	const dispatch = useDispatch();
 
 	const registerUser = async (e) => {
 		e.preventDefault();
-
 		setWaiting(true);
 		const baseUrl = import.meta.env.VITE_API_URL;
 		const response = await fetch(`${baseUrl}/user/register/`, {
@@ -40,7 +36,6 @@ const Register = () => {
 		});
 
 		let data = await response.json();
-		console.log(data);
 		if (data.status === 'success') {
 			data = data.data;
 			dispatch(
@@ -54,7 +49,6 @@ const Register = () => {
 					profilePic: data.profile_pic,
 				})
 			);
-
 			navigate('/');
 		} else {
 			toast(data.errors);
@@ -63,151 +57,137 @@ const Register = () => {
 	};
 
 	return (
-		<div>
-			<div
-				className='flex  items-center h-screen flex-col justify-center px-6 py-12 lg:px-8 '
-				style={{
-					background: `url(${authBg}) no-repeat center center/cover`,
-				}}>
-				<div className='w-fit overflow-auto scrollbar-hidden pl-12 pr-12 pt-6 pb-6 rounded-lg bg-neutral-800 text-white border-2 border-neutral-700'>
-					<div className='sm:mx-auto sm:w-full sm:max-w-sm'>
-						<img
-							className='mx-auto h-10 w-auto'
-							src='https://tailwindui.com/plus/img/logos/mark.svg?color=indigo&shade=600'
-							alt='Your Company'
-						/>
-						<h2 className='mt-10 text-center text-2xl/9 font-bold tracking-tight text-green-600'>
-							Create a new account
+		<div className='min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center px-4 py-12 sm:px-6 lg:px-8'>
+			<div className='w-full max-w-2xl'>
+				<div className='bg-black/20 backdrop-blur-sm rounded-2xl border border-white/5 p-8 shadow-xl'>
+					<div className='text-center'>
+						<div className='mx-auto h-12 w-12 bg-blue-500/10 rounded-xl flex items-center justify-center'>
+							<ChessKnight className='h-8 w-8 text-blue-400' />
+						</div>
+						<h2 className='mt-6 text-3xl font-bold tracking-tight text-white'>
+							Create Your Account
 						</h2>
-					</div>
-
-					<div className='mt-10 sm:mx-auto sm:w-full sm:max-w-sm'>
-						<form className='space-y-6'>
-							<div className='flex gap-4'>
-								<div>
-									<label
-										htmlFor='username'
-										className='block text-sm/6 font-medium '>
-										First Name
-									</label>
-									<div className='mt-2'>
-										<input
-											id='firstName'
-											name='firstName'
-											type='text'
-											autoComplete='firstName'
-											required
-											className='bg-slate-300 text-black p-1 block w-full rounded-md border-0 py-1.5  shadow-sm  placeholder:text-gray-400 sm:text-sm/6 outline-none'
-											value={firstName}
-											onChange={(e) => setFirstName(e.target.value)}
-										/>
-									</div>
-								</div>
-								<div>
-									<label
-										htmlFor='lastName'
-										className='block text-sm/6 font-medium '>
-										Last Name
-									</label>
-									<div className='mt-2'>
-										<input
-											id='lastName'
-											name='lastName'
-											type='text'
-											autoComplete='lastName'
-											required
-											className='bg-slate-300 outline-none text-black p-1 block w-full rounded-md border-0 py-1.5  shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 sm:text-sm/6'
-											value={lastName}
-											onChange={(e) => setLastName(e.target.value)}
-										/>
-									</div>
-								</div>
-							</div>
-
-							<div>
-								<label
-									htmlFor='email'
-									className='block text-sm/6 font-medium '>
-									Email
-								</label>
-								<div className='mt-2'>
-									<input
-										id='email'
-										name='email'
-										type='email'
-										autoComplete='email'
-										required
-										className='bg-slate-300 outline-none text-black p-1 block w-full rounded-md border-0 py-1.5  shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400  sm:text-sm/6'
-										value={email}
-										onChange={(e) => setEmail(e.target.value)}
-									/>
-								</div>
-							</div>
-
-							<div>
-								<label
-									htmlFor='username'
-									className='block text-sm/6 font-medium '>
-									Username
-								</label>
-								<div className='mt-2'>
-									<input
-										id='username'
-										name='username'
-										type='text'
-										autoComplete='username'
-										required
-										className='bg-slate-300 outline-none text-black p-1 block w-full rounded-md border-0 py-1.5  shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 sm:text-sm/6'
-										value={username}
-										onChange={(e) => setUsername(e.target.value)}
-									/>
-								</div>
-							</div>
-
-							<div>
-								<div className='flex items-center justify-between'>
-									<label
-										htmlFor='password'
-										className='block text-sm/6 font-medium '>
-										Password
-									</label>
-								</div>
-								<div className='mt-2'>
-									<input
-										id='password'
-										name='password'
-										type='password'
-										autoComplete='current-password'
-										required
-										className='bg-slate-300 outline-none text-black p-1 block w-full rounded-md border-0 py-1.5  shadow-sm  placeholder:text-gray-400  sm:text-sm/6'
-										value={password}
-										onChange={(e) => setPassword(e.target.value)}
-									/>
-								</div>
-							</div>
-
-							<div className='flex w-full justify-center rounded-md bg-green-600 px-3 py-1.5 text-sm/6 font-semibold text-white shadow-sm hover:bg-green-500 '>
-								{!waiting && (
-									<button
-										type='submit'
-										onClick={registerUser}>
-										Register
-									</button>
-								)}
-								{waiting && <Spinner />}
-							</div>
-						</form>
-
-						<p className='mt-10 text-center text-sm/6 text-gray-500'>
-							Already have an account?
-							<Link
-								to='/register'
-								className='font-semibold text-green-600 hover:text-green-500'>
-								{' '}
-								Log in
-							</Link>
+						<p className='mt-2 text-sm text-gray-400'>
+							Join the chess community and start your journey
 						</p>
 					</div>
+
+					<form
+						className='mt-8 space-y-6'
+						onSubmit={registerUser}>
+						<div className='grid grid-cols-1 gap-6 sm:grid-cols-2'>
+							<div>
+								<label
+									htmlFor='firstName'
+									className='block text-sm font-medium text-gray-300'>
+									First Name
+								</label>
+								<div className='mt-1'>
+									<input
+										type='text'
+										id='firstName'
+										required
+										value={firstName}
+										onChange={(e) => setFirstName(e.target.value)}
+										className='block w-full rounded-lg border border-white/5 bg-black/20 px-4 py-3 text-white placeholder-gray-500 focus:border-blue-500 focus:ring-blue-500 sm:text-sm'
+										placeholder='Enter your first name'
+									/>
+								</div>
+							</div>
+
+							<div>
+								<label
+									htmlFor='lastName'
+									className='block text-sm font-medium text-gray-300'>
+									Last Name
+								</label>
+								<div className='mt-1'>
+									<input
+										type='text'
+										id='lastName'
+										required
+										value={lastName}
+										onChange={(e) => setLastName(e.target.value)}
+										className='block w-full rounded-lg border border-white/5 bg-black/20 px-4 py-3 text-white placeholder-gray-500 focus:border-blue-500 focus:ring-blue-500 sm:text-sm'
+										placeholder='Enter your last name'
+									/>
+								</div>
+							</div>
+
+							<div className='sm:col-span-2'>
+								<label
+									htmlFor='email'
+									className='block text-sm font-medium text-gray-300'>
+									Email
+								</label>
+								<div className='mt-1'>
+									<input
+										type='email'
+										id='email'
+										required
+										value={email}
+										onChange={(e) => setEmail(e.target.value)}
+										className='block w-full rounded-lg border border-white/5 bg-black/20 px-4 py-3 text-white placeholder-gray-500 focus:border-blue-500 focus:ring-blue-500 sm:text-sm'
+										placeholder='Enter your email address'
+									/>
+								</div>
+							</div>
+
+							<div className='sm:col-span-2'>
+								<label
+									htmlFor='username'
+									className='block text-sm font-medium text-gray-300'>
+									Username
+								</label>
+								<div className='mt-1'>
+									<input
+										type='text'
+										id='username'
+										required
+										value={username}
+										onChange={(e) => setUsername(e.target.value)}
+										className='block w-full rounded-lg border border-white/5 bg-black/20 px-4 py-3 text-white placeholder-gray-500 focus:border-blue-500 focus:ring-blue-500 sm:text-sm'
+										placeholder='Choose a username'
+									/>
+								</div>
+							</div>
+
+							<div className='sm:col-span-2'>
+								<label
+									htmlFor='password'
+									className='block text-sm font-medium text-gray-300'>
+									Password
+								</label>
+								<div className='mt-1'>
+									<input
+										type='password'
+										id='password'
+										required
+										value={password}
+										onChange={(e) => setPassword(e.target.value)}
+										className='block w-full rounded-lg border border-white/5 bg-black/20 px-4 py-3 text-white placeholder-gray-500 focus:border-blue-500 focus:ring-blue-500 sm:text-sm'
+										placeholder='Create a strong password'
+									/>
+								</div>
+							</div>
+						</div>
+
+						<button
+							type='submit'
+							disabled={waiting}
+							className='flex w-full justify-center items-center rounded-lg bg-blue-500 px-4 py-3 text-sm font-semibold text-white shadow-sm hover:bg-blue-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500 transition-colors disabled:opacity-50'>
+							{waiting ? <Spinner /> : 'Create Account'}
+						</button>
+
+						<p className='text-center text-sm text-gray-400'>
+							Already have an account?{' '}
+							<Link
+								to='/login'
+								className='font-medium text-blue-400 hover:text-blue-300'>
+								Sign in
+							</Link>
+						</p>
+					</form>
 				</div>
 			</div>
 		</div>

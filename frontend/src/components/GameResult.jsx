@@ -1,96 +1,149 @@
 import React from 'react';
-import resultBg from '../assets/home_bg.png';
+import {
+	Trophy,
+	Swords,
+	RotateCcw,
+	LogOut,
+	Clock,
+	Target,
+	Share2,
+	Medal,
+} from 'lucide-react';
 
 const GameResult = ({ winner, player, opponent }) => {
 	const isWinner = winner === player;
 
 	return (
-		<div
-			className='h-fit w-fit rounded-lg p-10 pl-12 pr-12  flex flex-col items-center justify-center text-white'
-			style={{
-				// backgroundColor: '#272522',
-				backgroundColor: 'rgb(29 28 26)',
-			}}>
+		<div className='bg-gray-900/95 backdrop-blur-lg rounded-2xl border border-blue-500/20 p-8 shadow-xl w-[30rem]'>
 			{/* Result Banner */}
-			<div
-				style={{
-					backgroundColor: 'rgb(42 40 38)',
-				}}
-				className={`text-center p-6 rounded-lg shadow-lg`}>
-				<h1 className='text-4xl font-bold'>
-					{isWinner ? 'You Won!' : 'You Lost'}
+			<div className='text-center'>
+				<div className='mx-auto h-16 w-16 bg-blue-500/10 rounded-xl flex items-center justify-center mb-4'>
+					{isWinner ? (
+						<Trophy className='h-10 w-10 text-blue-400' />
+					) : (
+						<Swords className='h-10 w-10 text-blue-400' />
+					)}
+				</div>
+				<h1 className='text-3xl font-bold text-white mb-2'>
+					{isWinner ? 'Victory!' : 'Defeat'}
 				</h1>
-				<p className='mt-2 text-lg'>
+				<p className='text-lg text-gray-400'>
 					{isWinner
-						? `Congratulations, ${player}!`
-						: `Better luck next time, ${player}.`}
+						? `Excellent strategy, ${player}!`
+						: `A worthy battle, ${player}.`}
 				</p>
 			</div>
 
-			{/* Game Details */}
-			<div
-				style={{
-					backgroundColor: 'rgb(42 40 38)',
-				}}
-				className='mt-8 w-full max-w-2xl shadow-lg rounded-lg p-6'>
-				<h2 className='text-2xl font-semibold text-center mb-6'>
-					Game Summary
-				</h2>
+			{/* Game Stats */}
+			<div className='mt-8 grid grid-cols-3 gap-4'>
+				<div className='bg-blue-500/10 rounded-lg p-3 text-center'>
+					<Clock className='h-5 w-5 text-blue-400 mx-auto mb-1' />
+					<p className='text-sm text-gray-400'>Time</p>
+					<p className='text-lg font-semibold text-white'>12:45</p>
+				</div>
+				<div className='bg-blue-500/10 rounded-lg p-3 text-center'>
+					<Target className='h-5 w-5 text-blue-400 mx-auto mb-1' />
+					<p className='text-sm text-gray-400'>Moves</p>
+					<p className='text-lg font-semibold text-white'>24</p>
+				</div>
+				<div className='bg-blue-500/10 rounded-lg p-3 text-center'>
+					<Medal className='h-5 w-5 text-blue-400 mx-auto mb-1' />
+					<p className='text-sm text-gray-400'>Rating</p>
+					<p className='text-lg font-semibold text-white'>+15</p>
+				</div>
+			</div>
 
-				{/* Player vs Opponent */}
+			{/* Game Summary */}
+			<div className='mt-8 bg-blue-500/5 rounded-xl p-6 border border-blue-500/10'>
+				<h2 className='text-lg font-semibold text-white mb-4 text-center'>
+					Match Summary
+				</h2>
+				{/* Players */}
 				<div className='flex items-center justify-between'>
 					{/* Player */}
 					<div className='flex flex-col items-center'>
-						<img
-							src={player}
-							alt={player}
-							className='w-24 h-24 rounded-full border-4 border-white'
-						/>
-						<p className='mt-4 font-semibold text-lg'>{player}</p>
-						<p
-							className={`mt-2 text-lg font-extrabold ${
-								isWinner ? 'text-green-500' : 'text-gray-500'
+						<div className='relative'>
+							<div className='w-20 h-20 rounded-full border-2 border-blue-500/30 p-1'>
+								<img
+									src={player}
+									alt={player}
+									className='w-full h-full rounded-full object-cover'
+								/>
+							</div>
+							<div
+								className={`absolute -bottom-1 -right-1 w-6 h-6 rounded-full border-2 border-gray-900 flex items-center justify-center text-sm ${
+									isWinner
+										? 'bg-blue-500 text-white'
+										: 'bg-gray-600 text-gray-300'
+								}`}>
+								{isWinner ? '♔' : '♙'}
+							</div>
+						</div>
+						<p className='mt-3 text-base font-medium text-white'>{player}</p>
+						<div
+							className={`mt-1 px-3 py-1 rounded-full text-xs font-medium ${
+								isWinner
+									? 'bg-blue-500/20 text-blue-400'
+									: 'bg-gray-700/50 text-gray-400'
 							}`}>
-							{isWinner ? 'Winner' : 'Loser'}
-						</p>
+							{isWinner ? 'Winner' : 'Defeated'}
+						</div>
 					</div>
 
 					{/* VS */}
-					<div className='text-white font-bold text-xl'>VS</div>
+					<div className='flex flex-col items-center gap-2'>
+						<div className='w-12 h-12 rounded-full bg-blue-500/10 flex items-center justify-center'>
+							<span className='text-blue-400 font-bold'>VS</span>
+						</div>
+						<div className='text-xs text-gray-500'>Match #2453</div>
+					</div>
 
 					{/* Opponent */}
 					<div className='flex flex-col items-center'>
-						<img
-							src={opponent}
-							alt={opponent}
-							className='w-24 h-24 rounded-full border-4 border-white'
-						/>
-						<p className='mt-4 font-semibold text-lg'>{opponent}</p>
-						<p
-							className={`mt-2 text-lg font-extrabold ${
-								!isWinner ? 'text-green-500' : 'text-gray-500'
+						<div className='relative'>
+							<div className='w-20 h-20 rounded-full border-2 border-blue-500/30 p-1'>
+								<img
+									src={opponent}
+									alt={opponent}
+									className='w-full h-full rounded-full object-cover'
+								/>
+							</div>
+							<div
+								className={`absolute -bottom-1 -right-1 w-6 h-6 rounded-full border-2 border-gray-900 flex items-center justify-center text-sm ${
+									!isWinner
+										? 'bg-blue-500 text-white'
+										: 'bg-gray-600 text-gray-300'
+								}`}>
+								{!isWinner ? '♔' : '♙'}
+							</div>
+						</div>
+						<p className='mt-3 text-base font-medium text-white'>{opponent}</p>
+						<div
+							className={`mt-1 px-3 py-1 rounded-full text-xs font-medium ${
+								!isWinner
+									? 'bg-blue-500/20 text-blue-400'
+									: 'bg-gray-700/50 text-gray-400'
 							}`}>
-							{!isWinner ? 'Winner' : 'Loser'}
-						</p>
+							{!isWinner ? 'Winner' : 'Defeated'}
+						</div>
 					</div>
 				</div>
 			</div>
 
 			{/* Action Buttons */}
-			<div className='mt-6 flex space-x-4'>
+			<div className='mt-8 flex gap-4'>
 				<button
-					style={{
-						backgroundColor: 'rgb(42 40 38)',
-					}}
 					onClick={() => window.location.reload()}
-					className='px-6 py-2  rounded-lg shadow-slate-100'>
+					className='flex-1 flex items-center justify-center gap-2 rounded-lg bg-blue-500 px-4 py-3 text-sm font-medium text-white hover:bg-blue-400 transition-colors'>
+					<RotateCcw className='w-5 h-5' />
 					Play Again
 				</button>
-				<button
-					style={{
-						backgroundColor: 'rgb(42 40 38)',
-					}}
-					className='px-6 py-2 rounded-lg shadow-slate-100'>
+				<button className='flex items-center justify-center gap-2 rounded-lg bg-blue-500/10 px-4 py-3 text-sm font-medium text-blue-400 hover:bg-blue-500/20 transition-colors'>
+					<Share2 className='w-5 h-5' />
+					Share
+				</button>
+				<button className='flex-1 flex items-center justify-center gap-2 rounded-lg bg-gray-800 px-4 py-3 text-sm font-medium text-white hover:bg-gray-700 transition-colors'>
+					<LogOut className='w-5 h-5' />
 					Exit
 				</button>
 			</div>

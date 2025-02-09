@@ -63,16 +63,6 @@ class GameConsumer(AsyncWebsocketConsumer):
                 asyncio.create_task(
                     GameConsumer.games[self.game_room_name].start_clock())
 
-                # await self.channel_layer.group_send(
-                #     self.game_room_name, {
-                #         'type': 'game.room',
-                #         'event': {'message': 'START',
-                #                   self.user.username: GameConsumer.piece_assignment[self.user.username],
-                #                   GameConsumer.waiting_user.username: GameConsumer.piece_assignment[
-                #                       GameConsumer.waiting_user.username],
-                #                   }
-                #     }
-                # )
                 await self.channel_layer.group_send(
                     self.game_room_name, {
                         'type': 'game.room',
@@ -116,16 +106,26 @@ class GameConsumer(AsyncWebsocketConsumer):
     # Receive message from WebSocket
     async def receive(self, text_data):
         text_data_json = json.loads(text_data)
+        if "chat" in text_data_json:
+            chat = text_data_json["chat"]
+            await self.channel_layer.group_send(
+                self.game_room_name, {
+                    'type': 'room.chat',
+                    'chat': chat
+                }
+            )
+            return
         game_event = text_data_json["event"]
-
         prev_position = game_event["from"]
         curr_position = game_event["to"]
+        is_resign = game_event["resign"] if "resign" in game_event else False
 
         promote_to = None if 'promote_to' not in game_event else game_event['promote_to']
-
+        print(game_event)
         game = GameConsumer.games[self.game_room_name]
 
-        move = Move(self.user, prev_position, curr_position, promote_to)
+        move = Move(self.user, prev_position,
+                    curr_position, promote_to, is_resign)
 
         # Make the move
         await game.make_move(move)
@@ -133,7 +133,7 @@ class GameConsumer(AsyncWebsocketConsumer):
         response = move.to_json()
 
         if 'message' in response and response["message"] == 'INVALID':
-            # send message to particula individual
+            # send message to particular individual
             await self.channel_layer.send(
                 self.channel_name, {"type": "game.room", "event": response}
             )
@@ -149,3 +149,9 @@ class GameConsumer(AsyncWebsocketConsumer):
         await self.send(text_data=json.dumps({"event": game_event}))
         if 'ends' in game_event and game_event['ends']:
             await self.close()
+
+    async def room_chat(self, event):
+        chat = event['chat']
+        # Send message to WebSocket
+        # message-> id username text time
+        await self.send(text_data=json.dumps({"chat": chat}))

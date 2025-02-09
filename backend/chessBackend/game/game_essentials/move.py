@@ -1,6 +1,6 @@
 
 class Move():
-    def __init__(self, player, prev, curr, promote_to=None):
+    def __init__(self, player, prev, curr, promote_to=None, is_resign=False):
 
         # Player
         self.player = player
@@ -46,6 +46,9 @@ class Move():
 
         # Notation
         self.algebraic_notation = ""
+
+        self.resign = is_resign
+        self.winner = None
 
     def get_prev_coordinates(self):
         return [int(self.prev[1]), ord(self.prev[0])-ord('a')+1]
@@ -179,7 +182,11 @@ class Move():
             if self.game_ends:
                 response['ends'] = True
 
-            response['notation'] = self.algebraic_notation
+            if self.resign:
+                response['resign'] = True
+                response['winner'] = self.winner
+            else:
+                response['notation'] = self.algebraic_notation
 
             return response
         else:
